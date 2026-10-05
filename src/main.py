@@ -1,5 +1,8 @@
+from src.game import Game
+
+
 def main():
-    print("hello, coffe")
+    Game().run()
 
 
 if __name__ == "__main__":
