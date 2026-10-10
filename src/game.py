@@ -2,17 +2,19 @@ import glfw
 from OpenGL.GL import *
 
 from src.config import Config
+from src.controls import Controls
+from src.renderer import Renderer
 from src.state import State
 
 
 class Game:
-    state: State
-    config: Config
-
     def __init__(self):
         self.config = Config()  # Carrega as configurações padrões do jogo
         self.state = State()  # Inicia o estado da aplicação
         self.initialize_window()  # Inicializa a janela e outras configs básicas do OpenGL
+        self.renderer = Renderer(self.state)
+        self.controls = Controls(self.state, self.renderer)
+        self.state.load_objects()
 
     def initialize_window(self):
         if not glfw.init():
@@ -44,27 +46,13 @@ class Game:
 
         glfw.set_framebuffer_size_callback(self.state.window, window_resize_callback)
 
-        glClearColor(0.2, 0.3, 0.5, 0)
-
-    def render(self):
-        glClear(GL_COLOR_BUFFER_BIT)
-
-        for vaoId, vertexAmount in self.state.objectsIds:
-            glBindVertexArray(vaoId)
-            glDrawArrays(GL_TRIANGLES, 0, vertexAmount)
-
-        glBindVertexArray(0)
-
     def run(self):
+        self.controls.set_input_handler()
+
         while not glfw.window_should_close(self.state.window):
-            glfw.poll_events()
-            self.process_input()
+            self.controls.handle_dynamic_user_input(self.state.window)
             self.state.update()
-            self.render()
+            self.renderer.render()
             glfw.swap_buffers(self.state.window)
 
         glfw.terminate()
-
-    def process_input(self):
-        if glfw.get_key(self.state.window, glfw.KEY_ESCAPE) == glfw.PRESS:
-            glfw.set_window_should_close(self.state.window, True)
