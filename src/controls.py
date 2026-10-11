@@ -25,11 +25,21 @@ class Controls:
         speed = 0.01
         rotation_speed = speed * 3
 
-        if glfw.get_key(window, glfw.KEY_UP) == glfw.PRESS:
-            self.state.objects[0].move_at(y=speed)
-        if glfw.get_key(window, glfw.KEY_DOWN) == glfw.PRESS:
-            self.state.objects[0].move_at(y=-speed)
-        if glfw.get_key(window, glfw.KEY_LEFT) == glfw.PRESS:
-            self.state.objects[0].rotate(rotation_speed, z_angle=1)
-        if glfw.get_key(window, glfw.KEY_RIGHT) == glfw.PRESS:
-            self.state.objects[0].rotate(-rotation_speed, z_angle=1)
+        if glfw.get_key(window, glfw.KEY_LEFT_SHIFT) == glfw.PRESS:
+            if glfw.get_key(window, glfw.KEY_UP) == glfw.PRESS:
+                self.state.objects[0].rotate(rotation_speed, x_angle=1)
+            if glfw.get_key(window, glfw.KEY_DOWN) == glfw.PRESS:
+                self.state.objects[0].rotate(rotation_speed, x_angle=-1)
+            if glfw.get_key(window, glfw.KEY_LEFT) == glfw.PRESS:
+                self.state.objects[0].rotate(rotation_speed, y_angle=1)
+            if glfw.get_key(window, glfw.KEY_RIGHT) == glfw.PRESS:
+                self.state.objects[0].rotate(rotation_speed, y_angle=-1)
+        else:
+            if glfw.get_key(window, glfw.KEY_UP) == glfw.PRESS:
+                self.state.objects[0].move_at(y=speed)
+            if glfw.get_key(window, glfw.KEY_DOWN) == glfw.PRESS:
+                self.state.objects[0].move_at(y=-speed)
+            if glfw.get_key(window, glfw.KEY_LEFT) == glfw.PRESS:
+                self.state.objects[0].move_at(-speed)
+            if glfw.get_key(window, glfw.KEY_RIGHT) == glfw.PRESS:
+                self.state.objects[0].move_at(speed)
