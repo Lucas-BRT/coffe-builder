@@ -1,4 +1,5 @@
 import glfw
+from pyglm import glm
 
 from src.objects.block import Block
 from src.renderer import Renderer
@@ -9,6 +10,7 @@ class Controls:
     def __init__(self, state: State, renderer: Renderer):
         self.renderer = renderer
         self.state = state
+        self.zoom_speed = 0.01
 
     def set_input_handler(self):
         def key_callback(window, key, scancode, action, mods):
@@ -27,12 +29,17 @@ class Controls:
                     self.state.objects.append(Block())
                 except:
                     pass
+            if key == glfw.KEY_R and action == glfw.PRESS:
+                try:
+                    self.state.rotate = not self.state.rotate
+                except:
+                    pass
 
         glfw.set_key_callback(self.state.window, key_callback)
 
     def handle_dynamic_user_input(self, window):
         glfw.poll_events()
-        speed = 0.01
+        speed = 0.02
         rotation_speed = speed * 3
 
         if glfw.get_key(window, glfw.KEY_LEFT_SHIFT) == glfw.PRESS:
@@ -41,15 +48,28 @@ class Controls:
             if glfw.get_key(window, glfw.KEY_DOWN) == glfw.PRESS:
                 self.state.objects[0].rotate(rotation_speed, x_angle=-1)
             if glfw.get_key(window, glfw.KEY_LEFT) == glfw.PRESS:
-                self.state.objects[0].rotate(rotation_speed, y_angle=1)
+                self.state.objects[0].rotate(rotation_speed, z_angle=1)
             if glfw.get_key(window, glfw.KEY_RIGHT) == glfw.PRESS:
-                self.state.objects[0].rotate(rotation_speed, y_angle=-1)
-        else:
-            if glfw.get_key(window, glfw.KEY_UP) == glfw.PRESS:
-                self.state.objects[0].move_at(y=speed)
-            if glfw.get_key(window, glfw.KEY_DOWN) == glfw.PRESS:
-                self.state.objects[0].move_at(y=-speed)
-            if glfw.get_key(window, glfw.KEY_LEFT) == glfw.PRESS:
-                self.state.objects[0].move_at(-speed)
-            if glfw.get_key(window, glfw.KEY_RIGHT) == glfw.PRESS:
-                self.state.objects[0].move_at(speed)
+                self.state.objects[0].rotate(rotation_speed, z_angle=-1)
+            if glfw.get_key(window, glfw.KEY_Q) == glfw.PRESS:
+                self.renderer.camera.rotate(rotation_speed, y_angle=1)
+            if glfw.get_key(window, glfw.KEY_E) == glfw.PRESS:
+                self.renderer.camera.rotate(rotation_speed, y_angle=-1)
+
+        if glfw.get_key(window, glfw.KEY_UP) == glfw.PRESS:
+            self.state.objects[0].move_at(y=speed)
+        if glfw.get_key(window, glfw.KEY_DOWN) == glfw.PRESS:
+            self.state.objects[0].move_at(y=-speed)
+        if glfw.get_key(window, glfw.KEY_LEFT) == glfw.PRESS:
+            self.state.objects[0].move_at(-speed)
+        if glfw.get_key(window, glfw.KEY_RIGHT) == glfw.PRESS:
+            self.state.objects[0].move_at(speed)
+        # precisa implementar o set_zoom
+        if glfw.get_key(window, glfw.KEY_EQUAL) == glfw.PRESS:
+            self.renderer.camera.set_zoom(
+                self.renderer.camera.zoom_level - self.zoom_speed
+            )
+        if glfw.get_key(window, glfw.KEY_MINUS) == glfw.PRESS:
+            self.renderer.camera.set_zoom(
+                self.renderer.camera.zoom_level + self.zoom_speed
+            )

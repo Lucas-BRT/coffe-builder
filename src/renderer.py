@@ -4,6 +4,9 @@ from pathlib import Path
 from OpenGL.GL import *
 from pyglm import glm
 
+from src.camera import Camera
+from src.state import State
+
 SHADERS_DIR = Path(__file__).resolve().parent.parent / "shaders"
 
 
@@ -13,20 +16,29 @@ class RenderMode(Enum):
 
 
 class Renderer:
-    def __init__(self, state):
+    def __init__(self, state: State):
         self.state = state
         self.shader = Renderer.create_program(
             self.read_shader("main.vert"), self.read_shader("main.frag")
         )
         self.model_loc = glGetUniformLocation(self.shader, "model")
         self.render_mode = RenderMode.NORMAL
+        self.aspect_ratio = (
+            self.state.config.window_width / self.state.config.window_height
+        )
+        self.camera = Camera()
 
     def render(self):
         glClear(GL_COLOR_BUFFER_BIT)
         glUseProgram(self.shader)
 
         for obj in self.state.objects:
-            glUniformMatrix4fv(self.model_loc, 1, GL_FALSE, glm.value_ptr(obj.model))
+            glUniformMatrix4fv(
+                self.model_loc,
+                1,
+                GL_FALSE,
+                glm.value_ptr(self.camera.pv * obj.model),
+            )
             glBindVertexArray(obj.vao)
             glPolygonMode(GL_FRONT_AND_BACK, self.render_mode.value)
             glDrawArrays(GL_TRIANGLES, 0, obj.vertex_count)
