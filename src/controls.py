@@ -1,5 +1,6 @@
 import glfw
 
+from src.objects.block import Block
 from src.renderer import Renderer
 from src.state import State
 
@@ -15,8 +16,17 @@ class Controls:
                 self.renderer.togle_render_mode()
             if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
                 glfw.set_window_should_close(self.state.window, True)
-            # if key == glfw.KEY_RIGHT and action == glfw.PRESS:
-            #     self.state.objects[0].translate(y=0.01)
+
+            if key == glfw.KEY_BACKSPACE and action == glfw.PRESS:
+                try:
+                    self.state.objects.pop()
+                except:
+                    pass
+            if key == glfw.KEY_ENTER and action == glfw.PRESS:
+                try:
+                    self.state.objects.append(Block())
+                except:
+                    pass
 
         glfw.set_key_callback(self.state.window, key_callback)
 
