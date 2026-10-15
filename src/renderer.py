@@ -3,6 +3,7 @@ from pathlib import Path
 
 from OpenGL.GL import *
 from pyglm import glm
+import glfw
 
 SHADERS_DIR = Path(__file__).resolve().parent.parent / "shaders"
 
@@ -20,18 +21,30 @@ class Renderer:
         )
         self.model_loc = glGetUniformLocation(self.shader, "model")
         self.render_mode = RenderMode.NORMAL
+        self.view_loc = glGetUniformLocation(self.shader, "view")
+        self.proj_loc = glGetUniformLocation(self.shader, "projection")
+        glEnable(GL_DEPTH_TEST)
 
     def render(self):
-        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glUseProgram(self.shader)
 
+        w, h = glfw.get_framebuffer_size(self.state.window)
+        cam = self.state.camera
+        view = cam.view_matrix()
+        proj = cam.projection_matrix(w / max(h, 1))
+        glUniformMatrix4fv(self.view_loc, 1, GL_FALSE, glm.value_ptr(view))
+        glUniformMatrix4fv(self.proj_loc, 1, GL_FALSE, glm.value_ptr(proj))
+
         for obj in self.state.objects:
-            glUniformMatrix4fv(self.model_loc, 1, GL_FALSE, glm.value_ptr(obj.model))
+            model = obj.model
+            glUniformMatrix4fv(self.model_loc, 1, GL_FALSE, glm.value_ptr(model))
             glBindVertexArray(obj.vao)
             glPolygonMode(GL_FRONT_AND_BACK, self.render_mode.value)
             glDrawArrays(GL_TRIANGLES, 0, obj.vertex_count)
 
         glBindVertexArray(0)
+
 
     def togle_render_mode(self):
         if self.render_mode == RenderMode.NORMAL:
