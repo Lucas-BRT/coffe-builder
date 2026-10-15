@@ -10,7 +10,7 @@ from src.state import State
 class Game:
     def __init__(self):
         self.config = Config()  # Carrega as configurações padrões do jogo
-        self.state = State()  # Inicia o estado da aplicação
+        self.state = State(self.config)  # Inicia o estado da aplicação
         self.initialize_window()  # Inicializa a janela e outras configs básicas do OpenGL
         self.renderer = Renderer(self.state)
         self.controls = Controls(self.state, self.renderer)
@@ -48,9 +48,11 @@ class Game:
 
     def run(self):
         self.controls.set_input_handler()
-
+        last = glfw.get_time()
         while not glfw.window_should_close(self.state.window):
-            self.controls.handle_dynamic_user_input(self.state.window)
+            now = glfw.get_time()
+            dt, last = now - last, now
+            self.controls.handle_dynamic_user_input(self.state.window, dt)
             self.state.update()
             self.renderer.render()
             glfw.swap_buffers(self.state.window)
