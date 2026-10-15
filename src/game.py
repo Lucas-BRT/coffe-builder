@@ -10,7 +10,7 @@ from src.state import State
 class Game:
     def __init__(self):
         self.config = Config()  # Carrega as configurações padrões do jogo
-        self.state = State()  # Inicia o estado da aplicação
+        self.state = State(self.config)  # Inicia o estado da aplicação
         self.initialize_window()  # Inicializa a janela e outras configs básicas do OpenGL
         self.renderer = Renderer(self.state)
         self.controls = Controls(self.state, self.renderer)

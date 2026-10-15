@@ -5,6 +5,9 @@ from OpenGL.GL import *
 from pyglm import glm
 import glfw
 
+from src.camera import Camera
+from src.state import State
+
 SHADERS_DIR = Path(__file__).resolve().parent.parent / "shaders"
 
 
@@ -14,7 +17,7 @@ class RenderMode(Enum):
 
 
 class Renderer:
-    def __init__(self, state):
+    def __init__(self, state: State):
         self.state = state
         self.shader = Renderer.create_program(
             self.read_shader("main.vert"), self.read_shader("main.frag")
