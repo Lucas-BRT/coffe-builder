@@ -5,13 +5,12 @@ from ctypes import _Pointer
 import glfw
 from OpenGL.GL import *
 
+from src.camera import Camera, IsometricCamera
 from src.config import Config
 from src.objects import Object
-from src.objects.block import Block
-from src.objects.triangle import Triangle
-from src.camera import Camera, IsometricCamera
-
-
+from src.objects.basic.block import Block
+from src.objects.basic.triangle import Triangle
+from src.objects.chair import Chair
 
 
 class State:
@@ -25,17 +24,23 @@ class State:
         ] = []  # gambiarra do momento: lista de ids de objetos para serem renderizados em outra camada
         self.config = config
         self.cameras = {
-           "iso": IsometricCamera(),
-           "fps": Camera(position=(0.0, 0.5, 2.0), pitch=-15),
+            "iso": IsometricCamera(),
+            "fps": Camera(position=(0.0, 0.5, 2.0), pitch=-15),
         }
-        self.camera_mode = "iso"                  # começa na isométrica
+        self.camera_mode = "iso"  # começa na isométrica
         self.camera = self.cameras[self.camera_mode]
+        self.rotate = False
 
-    def set_camera(self,camera) -> None:
+    def set_camera(self, camera) -> None:
         self.camera = camera
 
     def update(self):
         pass
 
     def load_objects(self):
-        self.objects.append(Block())
+
+        self.objects.append(Chair())
+        # self.objects.append(Triangle(-0.5, 0.0))
+        # self.objects.append(Triangle(0.0, 0.0))
+        # self.objects.append(Square(x=0.0, y=0.0))
+        # self.objects.append(Block(width=0.25, height=0.75))

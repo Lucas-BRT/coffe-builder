@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from dataclasses import dataclass
 
 from OpenGL.GL import *
@@ -15,6 +16,10 @@ class Object:
     ya: float = 0
     z: float = 0
     za: float = 0
+
+    @abstractmethod
+    def vertex(width: float = 0.5, height: float = 0.5, depth: float = 0.5):
+        pass
 
     def move_at(self, x: float = 0.0, y: float = 0.0, z: float = 0.0):
         self.x = x

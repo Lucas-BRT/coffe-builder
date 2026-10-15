@@ -1,7 +1,7 @@
 import glfw
 from pyglm import glm
 
-from src.objects.block import Block
+from src.objects.basic.block import Block
 from src.renderer import Renderer
 from src.state import State
 
@@ -48,7 +48,6 @@ class Controls:
 
         glfw.set_key_callback(self.state.window, key_callback)
 
-
         def mouse_callback(window, xpos, ypos):
             if self.state.camera_mode != "fps":
                 return
@@ -63,13 +62,16 @@ class Controls:
 
         self.use_camera(self.state.camera_mode)
 
-
     def handle_dynamic_user_input(self, window, dt):
         glfw.poll_events()
         if self.state.camera_mode == "fps":
-            forward = (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS) - (glfw.get_key(window, glfw.KEY_S) == glfw.PRESS)
-            strafe  = (glfw.get_key(window, glfw.KEY_D) == glfw.PRESS) - (glfw.get_key(window, glfw.KEY_A) == glfw.PRESS)
-            self.state.camera.move(forward, strafe, dt)
+            forward = (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS) - (
+                glfw.get_key(window, glfw.KEY_S) == glfw.PRESS
+            )
+            strafe = (glfw.get_key(window, glfw.KEY_D) == glfw.PRESS) - (
+                glfw.get_key(window, glfw.KEY_A) == glfw.PRESS
+            )
+            self.state.cameras["fps"].move(forward, strafe, dt)
 
         speed = 0.02
         rotation_speed = speed * 3
@@ -83,9 +85,9 @@ class Controls:
             if glfw.get_key(window, glfw.KEY_RIGHT) == glfw.PRESS:
                 self.state.objects[0].rotate(rotation_speed, z_angle=-1)
             if glfw.get_key(window, glfw.KEY_Q) == glfw.PRESS:
-                self.renderer.camera.rotate(rotation_speed, y_angle=1)
+                self.state.cameras["iso"].rotate(rotation_speed, y_angle=1)
             if glfw.get_key(window, glfw.KEY_E) == glfw.PRESS:
-                self.renderer.camera.rotate(rotation_speed, y_angle=-1)
+                self.state.cameras["iso"].rotate(rotation_speed, y_angle=-1)
 
         if glfw.get_key(window, glfw.KEY_UP) == glfw.PRESS:
             self.state.objects[0].move_at(y=speed)
@@ -95,7 +97,6 @@ class Controls:
             self.state.objects[0].move_at(-speed)
         if glfw.get_key(window, glfw.KEY_RIGHT) == glfw.PRESS:
             self.state.objects[0].move_at(speed)
-
 
         if self.state.camera_mode == "iso":
             cam = self.state.camera

@@ -5,10 +5,8 @@ from src.objects import Object
 
 
 class Triangle(Object):
-    def __init__(self, x=0.0, y=0.0, size=0.05):
+    def __init__(self, x=0.0, y=0.0, z=0.0, size=0.5):
         vertex = glm.array(
-            # [Vertex(-0.5, -0.5, 0.0), Vertex(0.5, -0.5, 0.0), Vertex(0.0, 0.5, 0.0)],
-            # dtype=np.float32,
             glm.vec3(0.0, size * 1.2, 0.0),
             glm.vec3(size, -size, 0.0),
             glm.vec3(-size, -size, 0.0),
@@ -17,6 +15,10 @@ class Triangle(Object):
         vao = glGenVertexArrays(1)
         self.vbo = glGenBuffers(1)
 
+        super().__init__(vao, len(vertex), model=glm.mat4(1))
+        self.x = x
+        self.y = y
+        self.z = z
         glBindVertexArray(vao)
         glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
         glBufferData(GL_ARRAY_BUFFER, vertex.nbytes, vertex.ptr, GL_STATIC_DRAW)
@@ -24,4 +26,9 @@ class Triangle(Object):
         glEnableVertexAttribArray(0)
         glBindVertexArray(0)
 
-        super().__init__(vao, len(vertex), model=glm.mat4(1))
+    def vertex(
+        width: float = 0.5, height: float = 0.5, depth: float = 0.5, size=1, x=0.5
+    ):
+        (glm.vec3((0.0) + x, size * 1.2, 0.0),)
+        (glm.vec3((size) + x, -size, 0.0),)
+        (glm.vec3(-(size) + x, -size, 0.0),)
