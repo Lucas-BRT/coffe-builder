@@ -20,7 +20,6 @@ class Chair(Object):
         self.x = x
         self.y = y
         self.z = z
-
         self.vbo = glGenBuffers(1)
 
         glBindVertexArray(vao)

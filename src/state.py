@@ -14,6 +14,13 @@ from src.objects.components.triangle import Triangle
 from src.scenes import Scene
 from src.scenes.TestCoffe import TestCoffe
 
+# =======
+# from src.objects.basic.block import Block
+# from src.objects.basic.triangle import Triangle
+# from src.objects.chair import Chair
+# from src.renderer import Camera
+# >>>>>>> Stashed changes
+
 
 class State:
     window: _Pointer[
@@ -42,6 +49,18 @@ class State:
 
     def start(self):
         # self.scene = TestCoffe()
+        print(f"{len(self.objects)} objetos na aplicação")
+
+        for object in self.objects:
+            if self.rotate:
+                self.camera.rotate(
+                    0.01,
+                    # x_angle=-glfw.get_time(),
+                    y_angle=glfw.get_time(),
+                    # z_angle=-glfw.get_time(),
+                )
+
+    def load_objects(self):
         self.objects.append(Chair())
         # self.objects.append(Triangle(-0.5, 0.0))
         # self.objects.append(Triangle(0.0, 0.0))

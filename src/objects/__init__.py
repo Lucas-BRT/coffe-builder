@@ -4,8 +4,6 @@ from dataclasses import dataclass
 from OpenGL.GL import *
 from pyglm import glm
 
-from src.state import State
-
 
 @dataclass
 class Object:
@@ -41,10 +39,10 @@ class Object:
         self.za = z_angle
         self.model = self.model * glm.rotate(angle, glm.vec3(self.xa, self.ya, self.za))
 
-    def render(self, renderer: State):
-        glUniformMatrix4fv(
-            renderer.renderer.model_loc, 1, GL_FALSE, glm.value_ptr(self.model)
-        )
-        glBindVertexArray(self.vao)
-        glPolygonMode(GL_FRONT_AND_BACK, renderer.renderer.render_mode.value)
-        glDrawArrays(GL_TRIANGLES, 0, self.vertex_count)
+    # def render(self, renderer: State):
+    #     glUniformMatrix4fv(
+    #         renderer.renderer.model_loc, 1, GL_FALSE, glm.value_ptr(self.model)
+    #     )
+    #     glBindVertexArray(self.vao)
+    #     glPolygonMode(GL_FRONT_AND_BACK, renderer.renderer.render_mode.value)
+    #     glDrawArrays(GL_TRIANGLES, 0, self.vertex_count)
