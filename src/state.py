@@ -8,9 +8,11 @@ from OpenGL.GL import *
 from src.camera import Camera, IsometricCamera
 from src.config import Config
 from src.objects import Object
-from src.objects.basic.block import Block
-from src.objects.basic.triangle import Triangle
 from src.objects.chair import Chair
+from src.objects.components.block import Block
+from src.objects.components.triangle import Triangle
+from src.scenes import Scene
+from src.scenes.TestCoffe import TestCoffe
 
 
 class State:
@@ -22,6 +24,7 @@ class State:
         self.objects: list[
             Object
         ] = []  # gambiarra do momento: lista de ids de objetos para serem renderizados em outra camada
+        self.scene: Scene
         self.config = config
         self.cameras = {
             "iso": IsometricCamera(),
@@ -37,8 +40,8 @@ class State:
     def update(self):
         pass
 
-    def load_objects(self):
-
+    def start(self):
+        # self.scene = TestCoffe()
         self.objects.append(Chair())
         # self.objects.append(Triangle(-0.5, 0.0))
         # self.objects.append(Triangle(0.0, 0.0))

@@ -14,7 +14,7 @@ class Game:
         self.initialize_window()  # Inicializa a janela e outras configs básicas do OpenGL
         self.renderer = Renderer(self.state)
         self.controls = Controls(self.state, self.renderer)
-        self.state.load_objects()
+        self.state.start()
 
     def initialize_window(self):
         if not glfw.init():

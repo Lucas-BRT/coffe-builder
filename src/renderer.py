@@ -1,11 +1,10 @@
 from enum import Enum
 from pathlib import Path
 
+import glfw
 from OpenGL.GL import *
 from pyglm import glm
-import glfw
 
-from src.camera import Camera
 from src.state import State
 
 SHADERS_DIR = Path(__file__).resolve().parent.parent / "shaders"
@@ -19,11 +18,11 @@ class RenderMode(Enum):
 class Renderer:
     def __init__(self, state: State):
         self.state = state
+        self.render_mode = RenderMode.NORMAL
         self.shader = Renderer.create_program(
             self.read_shader("main.vert"), self.read_shader("main.frag")
         )
         self.model_loc = glGetUniformLocation(self.shader, "model")
-        self.render_mode = RenderMode.NORMAL
         self.view_loc = glGetUniformLocation(self.shader, "view")
         self.proj_loc = glGetUniformLocation(self.shader, "projection")
         glEnable(GL_DEPTH_TEST)
@@ -47,7 +46,6 @@ class Renderer:
             glDrawArrays(GL_TRIANGLES, 0, obj.vertex_count)
 
         glBindVertexArray(0)
-
 
     def togle_render_mode(self):
         if self.render_mode == RenderMode.NORMAL:

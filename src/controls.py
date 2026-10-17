@@ -1,7 +1,5 @@
 import glfw
-from pyglm import glm
 
-from src.objects.basic.block import Block
 from src.renderer import Renderer
 from src.state import State
 
@@ -30,16 +28,6 @@ class Controls:
             if key == glfw.KEY_C and action == glfw.PRESS:
                 self.use_camera("fps" if self.state.camera_mode == "iso" else "iso")
 
-            if key == glfw.KEY_BACKSPACE and action == glfw.PRESS:
-                try:
-                    self.state.objects.pop()
-                except:
-                    pass
-            if key == glfw.KEY_ENTER and action == glfw.PRESS:
-                try:
-                    self.state.objects.append(Block())
-                except:
-                    pass
             if key == glfw.KEY_R and action == glfw.PRESS:
                 try:
                     self.state.rotate = not self.state.rotate
