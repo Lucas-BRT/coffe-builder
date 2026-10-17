@@ -1,5 +1,8 @@
 import glfw
+from pyglm import glm
 
+from src.objects import COLORS
+from src.objects.components.block import Block
 from src.renderer import Renderer
 from src.state import State
 
@@ -28,6 +31,26 @@ class Controls:
             if key == glfw.KEY_C and action == glfw.PRESS:
                 self.use_camera("fps" if self.state.camera_mode == "iso" else "iso")
 
+            if key == glfw.KEY_TAB and action == glfw.PRESS and self.state.objects:
+                self.state.selected = (self.state.selected + 1) % len(
+                    self.state.objects
+                )
+
+            if key == glfw.KEY_0 and action == glfw.PRESS:
+                obj = self.state.selected_object()
+                if obj:
+                    obj.color = glm.vec3(obj.original_color)
+
+            if key == glfw.KEY_BACKSPACE and action == glfw.PRESS:
+                try:
+                    self.state.objects.pop()
+                except:
+                    pass
+            if key == glfw.KEY_ENTER and action == glfw.PRESS:
+                try:
+                    self.state.objects.append(Block())
+                except:
+                    pass
             if key == glfw.KEY_R and action == glfw.PRESS:
                 try:
                     self.state.rotate = not self.state.rotate

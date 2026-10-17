@@ -1,3 +1,5 @@
+from typing import List
+
 from OpenGL.GL import *
 from pyglm import glm
 
@@ -27,3 +29,15 @@ class Square(Object):
         glEnableVertexAttribArray(0)
         glBindVertexArray(0)
         super().__init__(vao, len(vertex), glm.mat4(1.0))
+
+    def vertex() -> List[glm.vec3]:
+        return [
+            # botton left triangle
+            glm.vec3(-0.5, 0.5, 0),
+            glm.vec3(-0.5, -0.5, 0),
+            glm.vec3(0.5, -0.5, 0),
+            # top right triangle
+            glm.vec3(-0.5, 0.5, 0),
+            glm.vec3(0.5, -0.5, 0),
+            glm.vec3(0.5, 0.5, 0),
+        ]

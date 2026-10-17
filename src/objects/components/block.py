@@ -4,15 +4,24 @@ from OpenGL.GL import *
 from pyglm import glm
 
 from src.objects import Object
+from src.objects.components.square import Square
 
 
 class Block(Object):
-    def __init__(self, width=0.5, height=0.5, depth=0.5, x=1.0, y=1.0, z=1.0):
-
-        vertex = glm.array(*Block.vertex())
+    def __init__(
+        self,
+        width=0.5,
+        height=0.5,
+        depth=0.5,
+        x=1.0,
+        y=1.0,
+        z=1.0,
+        color=(0.7, 1.0, 0.2),
+    ):
+        vertex = glm.array(*Block._vertex())
 
         vao = glGenVertexArrays(1)
-        super().__init__(vao, len(vertex), glm.mat4(1.0))
+        super().__init__(vao, len(vertex), glm.mat4(1.0), color=glm.vec3(*color))
         self.width = width
         self.height = height
         self.depth = depth
@@ -77,3 +86,10 @@ class Block(Object):
             glm.vec3(-(width), -height, depth),
             glm.vec3(-(width), height, depth),
         ]
+
+    def _vertex(
+        width: float = 0.5,
+        height: float = 0.5,
+        depth: float = 0.5,
+    ) -> List[glm.vec3]:
+        return [Square]

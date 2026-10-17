@@ -16,8 +16,7 @@ class RenderMode(Enum):
 
 
 class Renderer:
-    def __init__(self, state: State):
-        self.state = state
+    def __init__(self):
         self.render_mode = RenderMode.NORMAL
         self.shader = Renderer.create_program(
             self.read_shader("main.vert"), self.read_shader("main.frag")
@@ -25,25 +24,22 @@ class Renderer:
         self.model_loc = glGetUniformLocation(self.shader, "model")
         self.view_loc = glGetUniformLocation(self.shader, "view")
         self.proj_loc = glGetUniformLocation(self.shader, "projection")
+        self.color_loc = glGetUniformLocation(self.shader, "color")
         glEnable(GL_DEPTH_TEST)
 
-    def render(self):
+    def render(self, state: State):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glUseProgram(self.shader)
 
-        w, h = glfw.get_framebuffer_size(self.state.window)
-        cam = self.state.camera
+        w, h = glfw.get_framebuffer_size(state.window)
+        cam = state.camera
         view = cam.view_matrix()
         proj = cam.projection_matrix(w / max(h, 1))
         glUniformMatrix4fv(self.view_loc, 1, GL_FALSE, glm.value_ptr(view))
         glUniformMatrix4fv(self.proj_loc, 1, GL_FALSE, glm.value_ptr(proj))
 
-        for obj in self.state.objects:
-            model = obj.model
-            glUniformMatrix4fv(self.model_loc, 1, GL_FALSE, glm.value_ptr(model))
-            glBindVertexArray(obj.vao)
-            glPolygonMode(GL_FRONT_AND_BACK, self.render_mode.value)
-            glDrawArrays(GL_TRIANGLES, 0, obj.vertex_count)
+        for obj in state.objects:
+            obj.render(self)
 
         glBindVertexArray(0)
 

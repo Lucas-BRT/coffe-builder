@@ -1,5 +1,3 @@
-from typing import List
-
 from OpenGL.GL import *
 from pyglm import glm
 

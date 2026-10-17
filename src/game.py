@@ -12,7 +12,7 @@ class Game:
         self.config = Config()  # Carrega as configurações padrões do jogo
         self.state = State(self.config)  # Inicia o estado da aplicação
         self.initialize_window()  # Inicializa a janela e outras configs básicas do OpenGL
-        self.renderer = Renderer(self.state)
+        self.renderer = Renderer()
         self.controls = Controls(self.state, self.renderer)
         self.state.start()
 
@@ -54,7 +54,7 @@ class Game:
             dt, last = now - last, now
             self.controls.handle_dynamic_user_input(self.state.window, dt)
             self.state.update()
-            self.renderer.render()
+            self.renderer.render(self.state)
             glfw.swap_buffers(self.state.window)
 
         glfw.terminate()

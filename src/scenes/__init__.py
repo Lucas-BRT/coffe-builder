@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import Dict, List
 
 from pyglm import glm
 
@@ -13,6 +13,7 @@ class Scene:
     vao: int
     vertex_count: int
     model: glm.f32mat4
+    scenario: List[glm.vec3] = field(default_factory=list)
     objects: List[Object] = field(default_factory=list)
     x: float = 0
     xa: float = 0

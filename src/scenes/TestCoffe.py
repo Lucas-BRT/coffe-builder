@@ -23,7 +23,6 @@ class TestCoffe(Scene):
         glBindVertexArray(0)
 
     def render(self):
-
         glUniformMatrix4fv(self.model_loc, 1, GL_FALSE, glm.value_ptr(model))
         glBindVertexArray(obj.vao)
         glPolygonMode(GL_FRONT_AND_BACK, self.render_mode.value)
