@@ -5,7 +5,7 @@ from src.objects import Object
 
 
 class Block(Object):
-    def __init__(self, width=0.5, height=0.5, depth=0.5, x=1.0, y=1.0, z=1.0):
+    def __init__(self, width=0.5, height=0.5, depth=0.5, x=1.0, y=1.0, z=1.0, color=(0.7, 1.0, 0.2)):
         vertex = glm.array(
             # frente (z = +depth)
             glm.vec3(-width, height, depth),
@@ -60,4 +60,4 @@ class Block(Object):
         glVertexAttribPointer(0, len(vertex[0]), GL_FLOAT, GL_FALSE, 0, None)
         glEnableVertexAttribArray(0)
         glBindVertexArray(0)
-        super().__init__(vao, len(vertex), glm.mat4(1.0))
+        super().__init__(vao, len(vertex), glm.mat4(1.0),color=glm.vec3(*color))

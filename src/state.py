@@ -30,12 +30,19 @@ class State:
         }
         self.camera_mode = "iso"                  # começa na isométrica
         self.camera = self.cameras[self.camera_mode]
+        self.selected = 0
 
     def set_camera(self,camera) -> None:
         self.camera = camera
+
+    def selected_object(self):
+        if not self.objects:
+            return None
+        return self.objects[self.selected % len(self.objects)]
 
     def update(self):
         pass
 
     def load_objects(self):
-        self.objects.append(Block())
+        self.objects.append(Block(color=(0.9, 0.2, 0.2)))
+        self.objects.append(Block(width=0.15, height=0.15, depth=0.15, color=(0.2, 0.4, 0.9)))

@@ -5,6 +5,15 @@ from src.objects.block import Block
 from src.renderer import Renderer
 from src.state import State
 
+PALETTE = [
+    (0.9, 0.2, 0.2),
+    (0.2, 0.4, 0.9),
+    (0.2, 0.8, 0.3),
+    (0.95, 0.8, 0.2),
+    (0.7, 0.3, 0.8),
+    (0.9, 0.9, 0.9),
+]
+
 
 class Controls:
     def __init__(self, state: State, renderer: Renderer):
@@ -29,6 +38,19 @@ class Controls:
 
             if key == glfw.KEY_C and action == glfw.PRESS:
                 self.use_camera("fps" if self.state.camera_mode == "iso" else "iso")
+
+            if key == glfw.KEY_TAB and action == glfw.PRESS and self.state.objects:
+                self.state.selected = (self.state.selected + 1) % len(self.state.objects)
+
+            if action == glfw.PRESS and glfw.KEY_1 <= key < glfw.KEY_1 + len(PALETTE):
+                obj = self.state.selected_object()
+                if obj:
+                    obj.color = glm.vec3(*PALETTE[key - glfw.KEY_1])
+
+            if key == glfw.KEY_0 and action == glfw.PRESS:
+                obj = self.state.selected_object()
+                if obj:
+                    obj.color = glm.vec3(obj.original_color)
 
             if key == glfw.KEY_BACKSPACE and action == glfw.PRESS:
                 try:

@@ -26,6 +26,7 @@ class Renderer:
         self.render_mode = RenderMode.NORMAL
         self.view_loc = glGetUniformLocation(self.shader, "view")
         self.proj_loc = glGetUniformLocation(self.shader, "projection")
+        self.color_loc = glGetUniformLocation(self.shader, "color")
         glEnable(GL_DEPTH_TEST)
 
     def render(self):
@@ -42,6 +43,8 @@ class Renderer:
         for obj in self.state.objects:
             model = obj.model
             glUniformMatrix4fv(self.model_loc, 1, GL_FALSE, glm.value_ptr(model))
+            c = obj.color
+            glUniform3f(self.color_loc, c.x, c.y, c.z)
             glBindVertexArray(obj.vao)
             glPolygonMode(GL_FRONT_AND_BACK, self.render_mode.value)
             glDrawArrays(GL_TRIANGLES, 0, obj.vertex_count)

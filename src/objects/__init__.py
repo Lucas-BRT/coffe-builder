@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from OpenGL.GL import *
 from pyglm import glm
@@ -15,7 +15,9 @@ class Object:
     ya: float = 0
     z: float = 0
     za: float = 0
-
+    color: glm.vec3 = field(default_factory=lambda: glm.vec3(0.7, 1.0, 0.2))
+    def __post_init__(self):
+        self.original_color = glm.vec3(self.color)
     def move_at(self, x: float = 0.0, y: float = 0.0, z: float = 0.0):
         self.x = x
         self.y = y
