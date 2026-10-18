@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from src.camera import IsometricRotationDirection
-from src.objects import Object
+from src.objects import Entity
 
 
 @dataclass
@@ -16,7 +16,7 @@ class CloseApplication(Event):
 
 @dataclass
 class SpawObject(Event):
-    object: Object
+    object: Entity
 
 
 @dataclass

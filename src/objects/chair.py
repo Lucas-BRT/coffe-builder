@@ -1,53 +1,73 @@
-from OpenGL.GL import *
-from pyglm import glm
+from __future__ import annotations
 
-from src.objects import Object
+from dataclasses import dataclass, field
+from typing import List
+
+from src.objects import COLORS, Color, Entity, Group, Transform
+from src.objects.components import Block
 
 
-class Chair(Object):
-    def __init__(self, width=0.5, height=0.5, depth=0.5, x=1.0, y=1.0, z=1.0):
-        vertex = glm.array(Chair.vertex())
+@dataclass
+class Chair(Group):
+    """Cadeira com encosto, montada com Blocks. Medidas em metros.
 
-        vao = glGenVertexArrays(1)
+    A origem fica no chão, embaixo do centro do assento. A frente (onde a
+    pessoa senta) aponta para +Z e o encosto fica em -Z, então para virar a
+    cadeira para outro lado é só girar em Y.
 
-        super().__init__(vao, len(vertex), glm.mat4(1.0))
-        self.width = width
-        self.height = height
-        self.depth = depth
-        self.x = x
-        self.y = y
-        self.z = z
-        self.vbo = glGenBuffers(1)
+    seat_size:       largura e profundidade do assento
+    seat_height:     altura do chão até o topo do assento
+    backrest_height: altura do encosto, medida a partir do assento
+    leg_thickness:   espessura dos pés e do encosto
+    """
 
-        glBindVertexArray(vao)
-        glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
-        glBufferData(GL_ARRAY_BUFFER, vertex.nbytes, vertex.ptr, GL_STATIC_DRAW)
-        glVertexAttribPointer(0, len(vertex[0]), GL_FLOAT, GL_FALSE, 0, None)
-        glEnableVertexAttribArray(0)
-        glBindVertexArray(0)
+    seat_size: float = 0.42
+    seat_height: float = 0.45
+    backrest_height: float = 0.4
+    leg_thickness: float = 0.04
+    frame_color: Color = field(default_factory=lambda: COLORS["BROWN"])
+    seat_color: Color = field(default_factory=lambda: COLORS["LIGHT_BROWN"])
 
-    def vertex(
-        width: float = 0.5, height: float = 0.5, depth: float = 0.5, x=0.0, y=0, z=0
-    ):
-        leg_spacing = 0.3
-        leg_height = 0.25
-        leg_width = 0.05
-        seat_size = 2 * (x + 2 * leg_width)
-        seat_height = 0.05
-        seat_y = leg_height + (seat_height)
+    # Redefine o campo do pai: a Chair monta as partes sozinha, então elas
+    # não entram mais no __init__.
+    parts: List[Entity] = field(init=False)
 
-        leg = glm.array(
-            Block.vertex(height=leg_height, width=leg_width, depth=leg_width)
+    def __post_init__(self) -> None:
+        if min(self.seat_size, self.seat_height, self.backrest_height) <= 0:
+            raise ValueError("Chair sizes should be positive")
+        if self.leg_thickness * 2 >= self.seat_size:
+            raise ValueError("Legs are too thick for this seat")
+
+        seat_thickness = 0.04
+        leg_height = self.seat_height - seat_thickness
+        # centro dos pés, encostados nos cantos do assento
+        corner = self.seat_size / 2 - self.leg_thickness / 2
+
+        legs: List[Entity] = [
+            Block(
+                width=self.leg_thickness,
+                height=leg_height,
+                depth=self.leg_thickness,
+                transform=Transform.at(x, leg_height / 2, z),
+                color=self.frame_color,
+            )
+            for x in (-corner, corner)
+            for z in (-corner, corner)
+        ]
+        seat = Block(
+            width=self.seat_size,
+            height=seat_thickness,
+            depth=self.seat_size,
+            transform=Transform.at(0, leg_height + seat_thickness / 2, 0),
+            color=self.seat_color,
         )
-
-        leg1 = leg + glm.vec3(x + leg_spacing, y, z + leg_spacing)
-        leg2 = leg + glm.vec3(x - leg_spacing, y, z - leg_spacing)
-        leg3 = leg + glm.vec3(x + leg_spacing, y, z - leg_spacing)
-        leg4 = leg + glm.vec3(x - leg_spacing, y, z + leg_spacing)
-
-        seat = glm.array(
-            Block.vertex(height=seat_height, width=seat_size, depth=seat_size)
+        backrest = Block(
+            width=self.seat_size,
+            height=self.backrest_height,
+            depth=self.leg_thickness,
+            transform=Transform.at(
+                0, self.seat_height + self.backrest_height / 2, -corner
+            ),
+            color=self.frame_color,
         )
-        seat = seat + glm.vec3(x, y + seat_y, z)
-
-        return [*leg1, *leg2, *leg3, *leg4, *seat]
+        self.parts = [*legs, seat, backrest]

@@ -36,7 +36,7 @@ class Camera:
         pass
 
 
-class PerspectiveCamera:
+class PerspectiveCamera(Camera):
     type: CameraType = CameraType.Perspective
 
     def __init__(
@@ -89,7 +89,7 @@ class IsometricRotationDirection(Enum):
     Left = auto()
 
 
-class IsometricCamera:
+class IsometricCamera(Camera):
     type: CameraType = CameraType.Isometric
     rotation_speed = 0.06
     speed = 1.0  # metade da tela por SEGUNDO (com zoom 1)
@@ -129,7 +129,9 @@ class IsometricCamera:
 
     def projection_matrix(self, aspect: float) -> glm.mat4x4:
         z = self.zoom_level
-        return glm.ortho(-z * aspect, z * aspect, -z, z, -1.0, 100.0)
+        # near negativo e grande: na ortográfica não tem problema enxergar
+        # "atrás" da câmera, e assim cenas grandes não ficam cortadas
+        return glm.ortho(-z * aspect, z * aspect, -z, z, -100.0, 100.0)
 
     def move(self, forward: int, strafe: int, dt: float) -> None:
         """

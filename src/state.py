@@ -26,9 +26,9 @@ from src.events import (
     SpawObject,
     UpdateZoomLevel,
 )
-from src.objects import Object
+from src.objects import Entity
 from src.scenes import Scene
-from src.scenes.debug import DebugScene
+from src.scenes.coffee_shop import CoffeeShopScene
 from src.window import Window
 
 AnyCamera = Union[IsometricCamera, PerspectiveCamera]
@@ -55,7 +55,7 @@ class State:
             return self.perspective_camera
         raise ValueError(f"camera sem instância no State: {camera_type}")
 
-    def selected_object(self) -> Optional[Object]:
+    def selected_object(self) -> Optional[Entity]:
         objects = self.scene.objects
         if not objects:
             return None
@@ -79,11 +79,13 @@ class State:
     @handle_event.register
     def _(self, event: SpawObject) -> None:
         self.scene.objects.append(event.object)
+        print(f"spawed object {event.object}")
 
     @handle_event.register
     def _(self, event: RemoveLastObject) -> None:
         if self.scene.objects:
-            self.scene.objects.pop()
+            object = self.scene.objects.pop()
+            print(f"removed object: {object}")
 
     @handle_event.register
     def _(self, event: SelectNextObject) -> None:
@@ -101,6 +103,7 @@ class State:
 
         # rotaciona para o próximo tipo de camera disponível
         self.camera = self.camera_for(self.camera_mode.next())
+        print(f"change camera type to: {self.camera.type}")
         cursor_type = (
             glfw.CURSOR_DISABLED
             if isinstance(self.camera, PerspectiveCamera)
@@ -132,5 +135,6 @@ class State:
             camera.set_zoom(camera.zoom_level + event.amount)
 
     def start(self) -> None:
-        self.scene = DebugScene()
+        self.scene = CoffeeShopScene()
+        self.isometric_camera.set_zoom(self.scene.iso_zoom)
         print(f"{len(self.scene.objects)} objetos na aplicação")
