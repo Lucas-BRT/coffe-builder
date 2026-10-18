@@ -70,7 +70,7 @@ class Triangle(Object):
         return cls(base=base, height=height, apex=apex_x / base, **kwargs)
 
     @staticmethod
-    def build_vertices(base: float, height: float, apex: float) -> glm.array:
+    def build_vertices(base: float, height: float, apex: float) -> glm.array[glm.vec3]:
         """
         É staticmethod para poder ser usado sem criar um Triangle.
         """
@@ -80,6 +80,6 @@ class Triangle(Object):
         centroid = (a + b + c) / 3
         return glm.array(a - centroid, b - centroid, c - centroid)
 
-    def vertices(self) -> glm.array:
+    def vertices(self) -> glm.array[glm.vec3]:
         """Os vértices deste triângulo (espaço local)."""
         return Triangle.build_vertices(self.base, self.height, self.apex)

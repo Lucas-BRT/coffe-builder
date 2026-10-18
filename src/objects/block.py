@@ -1,11 +1,20 @@
 from OpenGL.GL import *
 from pyglm import glm
 
-from src.objects import Object
+from src.objects import COLORS, Color, Object
 
 
 class Block(Object):
-    def __init__(self, width=0.5, height=0.5, depth=0.5, x=1.0, y=1.0, z=1.0, color=(0.7, 1.0, 0.2)):
+    def __init__(
+        self,
+        width=0.5,
+        height=0.5,
+        depth=0.5,
+        x=1.0,
+        y=1.0,
+        z=1.0,
+        color: Color = COLORS["WHITE"],
+    ):
         vertex = glm.array(
             # frente (z = +depth)
             glm.vec3(-width, height, depth),
@@ -51,13 +60,6 @@ class Block(Object):
             glm.vec3(-width, height, depth),
         )
 
-        vao = glGenVertexArrays(1)
-        self.vbo = glGenBuffers(1)
+        # super().__init__(vao, len(vertex), glm.mat4(1.0), color=glm.vec3(*color))
 
-        glBindVertexArray(vao)
-        glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
-        glBufferData(GL_ARRAY_BUFFER, vertex.nbytes, vertex.ptr, GL_STATIC_DRAW)
-        glVertexAttribPointer(0, len(vertex[0]), GL_FLOAT, GL_FALSE, 0, None)
-        glEnableVertexAttribArray(0)
-        glBindVertexArray(0)
-        super().__init__(vao, len(vertex), glm.mat4(1.0),color=glm.vec3(*color))
+        super().__init__()

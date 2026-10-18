@@ -2,7 +2,6 @@ from OpenGL.GL import *
 from pyglm import glm
 
 from src.objects import Object
-from src.objects.components.block import Block
 
 
 class Chair(Object):

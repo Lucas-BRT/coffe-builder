@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Dict, Optional
 
@@ -14,7 +16,7 @@ class Mesh:
     vertex_count: int
 
     @classmethod
-    def from_vertices(cls, vertices: glm.array) -> "Mesh":
+    def from_vertices(cls, vertices: glm.array[glm.vec3]) -> Mesh:
         """
         Retorna Mesh entre aspas pq aparentemente o Python é burro e não consegue instanciar
         a classe quando lê ela. Longa história, mas no final, tudo se resume a: Saudades
@@ -56,7 +58,7 @@ class Transform:
     rotation: glm.dvec3 = field(default_factory=glm.dvec3)
     scale: glm.vec3 = field(default_factory=lambda: glm.vec3(1.0))
 
-    def matrix(self) -> glm.mat4:
+    def matrix(self) -> glm.mat4x4:
         matrix = glm.translate(self.position)
         matrix = glm.rotate(
             matrix, glm.radians(self.rotation.z), glm.vec3(0.0, 0.0, 1.0)
@@ -69,6 +71,16 @@ class Transform:
         )
         matrix = glm.scale(matrix, self.scale)
         return matrix
+
+
+def transform_vertices(
+    vertices: glm.array[glm.vec3], matrix: glm.mat4x4
+) -> glm.array[glm.vec3]:
+    """
+    Aplica a matriz em cada vértice. É o que permite montar uma forma a partir de
+    outras, tipo as faces de um Block, que são Squares rotacionados e transladados
+    """
+    return glm.array([glm.vec3(matrix * glm.vec4(v.x, v.y, v.z, 1.0)) for v in vertices])
 
 
 @dataclass(frozen=True)
@@ -85,9 +97,16 @@ class Color:
 COLORS: Dict[str, Color] = {
     "RED": Color(1, 0, 0, 1),
     "GREEN": Color(0, 1, 0, 1),
-    "BLUE": Color(1, 0, 1, 1),
+    "BLUE": Color(0, 0, 1, 1),
     "WHITE": Color(1, 1, 1, 1),
-    "BLACK": Color(1, 1, 1, 1),
+    "BLACK": Color(0, 0, 0, 1),
+    "GRAY": Color(0.5, 0.5, 0.5, 1),
+    "YELLOW": Color(1, 1, 0, 1),
+    "CYAN": Color(0, 1, 1, 1),
+    "MAGENTA": Color(1, 0, 1, 1),
+    "ORANGE": Color(1, 0.5, 0, 1),
+    "PURPLE": Color(0.5, 0, 1, 1),
+    "BROWN": Color(0.45, 0.28, 0.15, 1),
 }
 
 
@@ -98,11 +117,11 @@ class Object:
     color: Color = field(default_factory=lambda: COLORS["WHITE"])
     original_color: Color = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.original_color = self.color
 
     @property
-    def model(self):
+    def model(self) -> glm.mat4x4:
         return self.transform.matrix()
 
     def move_to(self, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
@@ -126,7 +145,10 @@ class Object:
         model = self.model
 
         glPolygonMode(GL_FRONT_AND_BACK, renderer.render_mode.value)
-        glUniformMatrix4fv(renderer.model_loc, 1, GL_FALSE, glm.value_ptr(model))
-        glUniform4f(renderer.color_loc, *self.color.to_gpu())
+        glUniformMatrix4fv(
+            renderer.model_uniform_loc, 1, GL_FALSE, glm.value_ptr(model)
+        )
+        glUniform4f(renderer.color_uniform_loc, *self.color.to_gpu())
         glBindVertexArray(self.mesh.vao)
+        # toda malha é uma lista de triângulos soltos (3 vértices cada)
         glDrawArrays(GL_TRIANGLES, 0, self.mesh.vertex_count)

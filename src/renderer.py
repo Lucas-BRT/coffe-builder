@@ -1,7 +1,6 @@
 from enum import Enum
 from pathlib import Path
 
-import glfw
 from OpenGL.GL import *
 from pyglm import glm
 
@@ -21,25 +20,31 @@ class Renderer:
         self.shader = Renderer.create_program(
             self.read_shader("main.vert"), self.read_shader("main.frag")
         )
-        self.model_loc = glGetUniformLocation(self.shader, "model")
-        self.view_loc = glGetUniformLocation(self.shader, "view")
-        self.proj_loc = glGetUniformLocation(self.shader, "projection")
-        self.color_loc = glGetUniformLocation(self.shader, "color")
+        self.model_uniform_loc = glGetUniformLocation(self.shader, "model")
+        self.view_uniform_loc = glGetUniformLocation(self.shader, "view")
+        self.proj_uniform_loc = glGetUniformLocation(self.shader, "projection")
+        self.color_uniform_loc = glGetUniformLocation(self.shader, "color")
         glEnable(GL_DEPTH_TEST)
 
-    def render(self, state: State):
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    def render(self, state: State) -> None:
+        glClear(GL_DEPTH_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT)
         glUseProgram(self.shader)
 
-        w, h = glfw.get_framebuffer_size(state.window)
         cam = state.camera
         view = cam.view_matrix()
-        proj = cam.projection_matrix(w / max(h, 1))
-        glUniformMatrix4fv(self.view_loc, 1, GL_FALSE, glm.value_ptr(view))
-        glUniformMatrix4fv(self.proj_loc, 1, GL_FALSE, glm.value_ptr(proj))
+        proj = cam.projection_matrix(
+            # Tecnicamente o GLFW não permite uma janela com 0 de
+            # altura por padrão mas é bom deixar o max(height, 1)
+            # por segurança mesmo
+            state.window.framebuffer_width / max(state.window.framebuffer_height, 1)
+        )
+        glUniformMatrix4fv(self.view_uniform_loc, 1, GL_FALSE, glm.value_ptr(view))
+        glUniformMatrix4fv(self.proj_uniform_loc, 1, GL_FALSE, glm.value_ptr(proj))
 
-        for obj in state.objects:
-            obj.render(self)
+        # Renderiza a cena que está carregada atualmente no estado
+        # usando o renderizador atual
+        state.scene.render(self)
 
         glBindVertexArray(0)
 
