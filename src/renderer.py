@@ -3,9 +3,7 @@ from pathlib import Path
 
 from OpenGL.GL import *
 from pyglm import glm
-import glfw
 
-from src.camera import Camera
 from src.state import State
 
 SHADERS_DIR = Path(__file__).resolve().parent.parent / "shaders"
@@ -17,37 +15,38 @@ class RenderMode(Enum):
 
 
 class Renderer:
-    def __init__(self, state: State):
-        self.state = state
+    def __init__(self):
+        self.render_mode = RenderMode.NORMAL
         self.shader = Renderer.create_program(
             self.read_shader("main.vert"), self.read_shader("main.frag")
         )
-        self.model_loc = glGetUniformLocation(self.shader, "model")
-        self.render_mode = RenderMode.NORMAL
-        self.view_loc = glGetUniformLocation(self.shader, "view")
-        self.proj_loc = glGetUniformLocation(self.shader, "projection")
+        self.model_uniform_loc = glGetUniformLocation(self.shader, "model")
+        self.view_uniform_loc = glGetUniformLocation(self.shader, "view")
+        self.proj_uniform_loc = glGetUniformLocation(self.shader, "projection")
+        self.color_uniform_loc = glGetUniformLocation(self.shader, "color")
         glEnable(GL_DEPTH_TEST)
 
-    def render(self):
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    def render(self, state: State) -> None:
+        glClear(GL_DEPTH_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT)
         glUseProgram(self.shader)
 
-        w, h = glfw.get_framebuffer_size(self.state.window)
-        cam = self.state.camera
+        cam = state.camera
         view = cam.view_matrix()
-        proj = cam.projection_matrix(w / max(h, 1))
-        glUniformMatrix4fv(self.view_loc, 1, GL_FALSE, glm.value_ptr(view))
-        glUniformMatrix4fv(self.proj_loc, 1, GL_FALSE, glm.value_ptr(proj))
+        proj = cam.projection_matrix(
+            # Tecnicamente o GLFW não permite uma janela com 0 de
+            # altura por padrão mas é bom deixar o max(height, 1)
+            # por segurança mesmo
+            state.window.framebuffer_width / max(state.window.framebuffer_height, 1)
+        )
+        glUniformMatrix4fv(self.view_uniform_loc, 1, GL_FALSE, glm.value_ptr(view))
+        glUniformMatrix4fv(self.proj_uniform_loc, 1, GL_FALSE, glm.value_ptr(proj))
 
-        for obj in self.state.objects:
-            model = obj.model
-            glUniformMatrix4fv(self.model_loc, 1, GL_FALSE, glm.value_ptr(model))
-            glBindVertexArray(obj.vao)
-            glPolygonMode(GL_FRONT_AND_BACK, self.render_mode.value)
-            glDrawArrays(GL_TRIANGLES, 0, obj.vertex_count)
+        # Renderiza a cena que está carregada atualmente no estado
+        # usando o renderizador atual
+        state.scene.render(self)
 
         glBindVertexArray(0)
-
 
     def togle_render_mode(self):
         if self.render_mode == RenderMode.NORMAL:
