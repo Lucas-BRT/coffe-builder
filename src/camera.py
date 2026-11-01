@@ -41,9 +41,9 @@ class PerspectiveCamera(Camera):
 
     def __init__(
         self,
-        position: Tuple[float, float, float] = (0.0, 0.2, 0.2),
-        yaw: float = -90,
-        pitch: float = 0.0,
+        position: Tuple[float, float, float] = (-1.1, 1.6, -3),
+        yaw: float = 90,
+        pitch: float = -20,
     ) -> None:
         self.position = glm.vec3(*position)
         self.world_up = glm.vec3(0.0, 1.0, 0.0)
