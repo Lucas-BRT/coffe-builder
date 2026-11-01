@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.camera import IsometricRotationDirection
+from src.cameras.isometric import IsometricRotationDirection
 from src.objects import Entity
 
 

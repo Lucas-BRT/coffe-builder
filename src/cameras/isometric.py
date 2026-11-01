@@ -1,87 +1,11 @@
 from __future__ import annotations
 
-from abc import abstractmethod
-from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Tuple, cast
+from typing import cast
 
 from pyglm import glm
 
-
-class CameraType(Enum):
-    Isometric = auto()
-    Perspective = auto()
-
-    def next(self) -> CameraType:
-        """
-        Apenas um helper para "rotacionar" entre os tipos de cameras,
-        se for preciso adicionar outros tipos no futuro, o método next
-        vai garantir que rotacionemos entre elas sem precisar de teclas
-        extras
-        """
-        types = list(CameraType)
-        return types[(types.index(self) + 1) % len(types)]
-
-
-@dataclass
-class Camera:
-    position: glm.vec3 = field(default_factory=glm.vec3)
-
-    @abstractmethod
-    def view_matrix(self) -> glm.mat4x4:
-        pass
-
-    @abstractmethod
-    def projection_matrix(self, aspect: float) -> glm.mat4x4:
-        pass
-
-
-class PerspectiveCamera(Camera):
-    type: CameraType = CameraType.Perspective
-
-    def __init__(
-        self,
-        position: Tuple[float, float, float] = (-1.1, 1.6, -3),
-        yaw: float = 90,
-        pitch: float = -20,
-    ) -> None:
-        self.position = glm.vec3(*position)
-        self.world_up = glm.vec3(0.0, 1.0, 0.0)
-        self.yaw = yaw
-        self.pitch = pitch
-        self.speed = 0.4  # unidades por SEGUNDO
-        self.sensitivity = 0.1
-        self.fov = 70.0
-        self._update_vectors()
-
-    def _update_vectors(self) -> None:
-        yaw, pitch = glm.radians(self.yaw), glm.radians(self.pitch)
-        self.front = glm.normalize(
-            glm.vec3(
-                glm.cos(yaw) * glm.cos(pitch),
-                glm.sin(pitch),
-                glm.sin(yaw) * glm.cos(pitch),
-            )
-        )
-        self.right = glm.normalize(glm.cross(self.front, self.world_up))
-        self.up = glm.cross(self.right, self.front)
-
-    def view_matrix(self) -> glm.mat4x4:
-        return glm.lookAt(self.position, self.position + self.front, self.up)
-
-    def projection_matrix(self, aspect: float) -> glm.mat4x4:
-        return glm.perspective(glm.radians(self.fov), aspect, 0.01, 100.0)
-
-    def rotate(self, dx: float, dy: float) -> None:
-        self.yaw += dx * self.sensitivity
-        self.pitch = max(-89.0, min(89.0, self.pitch + dy * self.sensitivity))
-        self._update_vectors()
-
-    def move(self, forward: int, strafe: int, dt: float) -> None:
-        flat_front = glm.normalize(glm.vec3(self.front.x, 0.0, self.front.z))
-        direction = flat_front * forward + self.right * strafe
-        if glm.length(direction) > 0:
-            self.position += glm.normalize(direction) * self.speed * dt
+from src.cameras import Camera, CameraType
 
 
 class IsometricRotationDirection(Enum):

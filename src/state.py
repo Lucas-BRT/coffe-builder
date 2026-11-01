@@ -6,12 +6,9 @@ from typing import Optional, Union
 import glfw
 from OpenGL.GL import *
 
-from src.camera import (
-    CameraType,
-    IsometricCamera,
-    IsometricRotationDirection,
-    PerspectiveCamera,
-)
+from src.cameras import CameraType
+from src.cameras.isometric import IsometricCamera, IsometricRotationDirection
+from src.cameras.perspective import PerspectiveCamera
 from src.config import Config
 from src.events import (
     ChangeCameraRequest,
@@ -40,7 +37,7 @@ class State:
         self.scene: Scene
         self.config = config
         self.isometric_camera = IsometricCamera()
-        self.perspective_camera = PerspectiveCamera(position=(0.0, 0.5, 2.0), pitch=-15)
+        self.perspective_camera = PerspectiveCamera()
         self.camera: AnyCamera = self.isometric_camera  # começa na isométrica
         self.selected = 0
 

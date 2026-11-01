@@ -4,6 +4,7 @@ from pathlib import Path
 from OpenGL.GL import *
 from pyglm import glm
 
+from src.objects import COLORS
 from src.state import State
 
 SHADERS_DIR = Path(__file__).resolve().parent.parent / "shaders"
@@ -15,7 +16,7 @@ class RenderMode(Enum):
 
 
 class Renderer:
-    def __init__(self):
+    def __init__(self, state: State):
         self.render_mode = RenderMode.NORMAL
         self.shader = Renderer.create_program(
             self.read_shader("main.vert"), self.read_shader("main.frag")
@@ -24,27 +25,33 @@ class Renderer:
         self.view_uniform_loc = glGetUniformLocation(self.shader, "view")
         self.proj_uniform_loc = glGetUniformLocation(self.shader, "projection")
         self.color_uniform_loc = glGetUniformLocation(self.shader, "color")
+        self.state = state
+
+        glPolygonMode(GL_FRONT_AND_BACK, self.render_mode.value)
+        glClearColor(*COLORS["WHITE"].to_gpu())
         glEnable(GL_DEPTH_TEST)
 
-    def render(self, state: State) -> None:
+    def render(self) -> None:
         glClear(GL_DEPTH_BUFFER_BIT)
         glClear(GL_COLOR_BUFFER_BIT)
         glUseProgram(self.shader)
 
-        cam = state.camera
+        cam = self.state.camera
         view = cam.view_matrix()
         proj = cam.projection_matrix(
             # Tecnicamente o GLFW não permite uma janela com 0 de
             # altura por padrão mas é bom deixar o max(height, 1)
             # por segurança mesmo
-            state.window.framebuffer_width / max(state.window.framebuffer_height, 1)
+            self.state.window.framebuffer_width
+            / max(self.state.window.framebuffer_height, 1)
         )
         glUniformMatrix4fv(self.view_uniform_loc, 1, GL_FALSE, glm.value_ptr(view))
         glUniformMatrix4fv(self.proj_uniform_loc, 1, GL_FALSE, glm.value_ptr(proj))
 
         # Renderiza a cena que está carregada atualmente no estado
         # usando o renderizador atual
-        state.scene.render(self)
+        self.state.scene.render(self)
+        # self.state.cursor.render(self)
 
         glBindVertexArray(0)
 

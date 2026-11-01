@@ -2,7 +2,8 @@ from typing import Optional
 
 import glfw
 
-from src.camera import CameraType, IsometricRotationDirection
+from src.cameras import CameraType
+from src.cameras.isometric import IsometricRotationDirection
 from src.events import (
     ChangeCameraRequest,
     CloseApplication,

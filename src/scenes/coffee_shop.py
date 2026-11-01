@@ -42,9 +42,7 @@ def dining_set(x: float, z: float, seat_color: Color) -> Group:
     distance = table.width / 2 + 0.21 - 0.06
 
     def chair(transform: Transform) -> Chair:
-        return Chair(
-            transform=transform, frame_color=WOOD_COLOR, seat_color=seat_color
-        )
+        return Chair(transform=transform, frame_color=WOOD_COLOR, seat_color=seat_color)
 
     chairs: List[Entity] = [
         chair(Transform.at(0, 0, -distance)),
