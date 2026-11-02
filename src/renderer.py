@@ -24,6 +24,10 @@ class Renderer:
         self.view_uniform_loc = glGetUniformLocation(self.shader, "view")
         self.proj_uniform_loc = glGetUniformLocation(self.shader, "projection")
         self.color_uniform_loc = glGetUniformLocation(self.shader, "color")
+        self.texture_uniform_loc = glGetUniformLocation(self.shader, "tex")
+        self.use_texture_uniform_loc = glGetUniformLocation(self.shader, "useTexture")
+        glUseProgram(self.shader)
+        glUniform1i(self.texture_uniform_loc, 0)
         glEnable(GL_DEPTH_TEST)
 
     def render(self, state: State) -> None:

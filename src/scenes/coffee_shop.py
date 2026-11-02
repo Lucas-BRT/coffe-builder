@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import List
 
-from src.objects import Color, Entity, Group, Transform
+from src.objects import COLORS, Color, Entity, Group, Transform
 from src.objects.chair import Chair
 from src.objects.components import Block
 from src.objects.counter import Counter
 from src.objects.table import Table
 from src.scenes import Scene
+from src.texture import Texture
 
 ROOM_SIZE = 6.0
 WALL_HEIGHT = 2.4
@@ -68,7 +69,9 @@ class CoffeeShopScene(Scene):
                 height=FLOOR_THICKNESS,
                 depth=ROOM_SIZE,
                 transform=Transform.at(0, -FLOOR_THICKNESS / 2, 0),
-                color=FLOOR_COLOR,
+                color=COLORS["WHITE"],
+                texture=Texture("madeira.png"),
+                uv_tile=1.0,
             )
         )
 
