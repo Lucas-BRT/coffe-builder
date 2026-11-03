@@ -53,9 +53,9 @@ class Renderer:
         glBindVertexArray(0)
 
     def togle_render_mode(self):
-        if self.render_mode == RenderMode.NORMAL:
+        if self.render_mode is RenderMode.NORMAL:
             self.render_mode = RenderMode.WIREFRAME
-        else:
+        elif self.render_mode is RenderMode.WIREFRAME:
             self.render_mode = RenderMode.NORMAL
 
     @staticmethod

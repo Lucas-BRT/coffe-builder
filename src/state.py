@@ -40,7 +40,7 @@ class State:
         self.scene: Scene
         self.config = config
         self.isometric_camera = IsometricCamera()
-        self.perspective_camera = PerspectiveCamera(position=(0.0, 0.5, 2.0), pitch=-15)
+        self.perspective_camera = PerspectiveCamera()
         self.camera: AnyCamera = self.isometric_camera  # começa na isométrica
         self.selected = 0
 

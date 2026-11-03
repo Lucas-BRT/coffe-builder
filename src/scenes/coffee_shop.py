@@ -43,9 +43,7 @@ def dining_set(x: float, z: float, seat_color: Color) -> Group:
     distance = table.width / 2 + 0.21 - 0.06
 
     def chair(transform: Transform) -> Chair:
-        return Chair(
-            transform=transform, frame_color=WOOD_COLOR, seat_color=seat_color
-        )
+        return Chair(transform=transform, frame_color=WOOD_COLOR, seat_color=seat_color)
 
     chairs: List[Entity] = [
         chair(Transform.at(0, 0, -distance)),
@@ -75,34 +73,41 @@ class CoffeeShopScene(Scene):
             )
         )
 
-        self.objects += [
-            Block(
-                width=ROOM_SIZE + WALL_THICKNESS,
-                height=WALL_HEIGHT,
-                depth=WALL_THICKNESS,
-                transform=Transform.at(
-                    -WALL_THICKNESS / 2, WALL_HEIGHT / 2, -half - WALL_THICKNESS / 2
-                ),
-                color=BACK_WALL_COLOR,
-            ),
-            Block(
-                width=WALL_THICKNESS,
-                height=WALL_HEIGHT,
-                depth=ROOM_SIZE,
-                transform=Transform.at(-half - WALL_THICKNESS / 2, WALL_HEIGHT / 2, 0),
-                color=SIDE_WALL_COLOR,
-            ),
-        ]
-
-        self.objects.append(
-            Counter(
-                length=3.0,
-                transform=Transform.at(-1.2, 0, -1.9),
-                body_color=COUNTER_BODY_COLOR,
-                top_color=COUNTER_TOP_COLOR,
-                plinth_color=COUNTER_PLINTH_COLOR,
-            )
+        side_wall = Block(
+            width=WALL_THICKNESS,
+            height=WALL_HEIGHT,
+            depth=ROOM_SIZE,
+            transform=Transform.at(-half - WALL_THICKNESS / 2, WALL_HEIGHT / 2, 0),
+            color=SIDE_WALL_COLOR,
         )
+
+        back_wall = Block(
+            width=ROOM_SIZE + WALL_THICKNESS,
+            height=WALL_HEIGHT,
+            depth=WALL_THICKNESS,
+            transform=Transform.at(
+                -WALL_THICKNESS / 2, WALL_HEIGHT / 2, -half - WALL_THICKNESS / 2
+            ),
+            color=BACK_WALL_COLOR,
+        )
+
+        floor = Block(
+            width=ROOM_SIZE,
+            height=FLOOR_THICKNESS,
+            depth=ROOM_SIZE,
+            transform=Transform.at(0, -FLOOR_THICKNESS / 2, 0),
+            color=FLOOR_COLOR,
+        )
+
+        counter = Counter(
+            length=3.0,
+            transform=Transform.at(-1.2, 0, -1.9),
+            body_color=COUNTER_BODY_COLOR,
+            top_color=COUNTER_TOP_COLOR,
+            plinth_color=COUNTER_PLINTH_COLOR,
+        )
+
+        self.objects += [floor, side_wall, back_wall, counter]
 
         # 4 mesas em grade 2x2 na parte da frente da sala
         positions = [(x, z) for x in (-1.5, 1.5) for z in (-0.2, 1.9)]

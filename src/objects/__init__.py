@@ -120,7 +120,7 @@ class Color:
     r: float
     g: float
     b: float
-    a: float
+    a: float = 1
 
     def to_gpu(self) -> glm.vec4:
         return glm.vec4(self.r, self.g, self.b, self.a)
