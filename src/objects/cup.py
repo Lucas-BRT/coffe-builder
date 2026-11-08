@@ -6,6 +6,8 @@ from src.objects.components import Block, Cylinder
 
 @dataclass
 class Cup(Group):
+    prop = True
+
     radius: float = 0.04
     height: float = 0.06
     cup_color: Color = field(default_factory=lambda: Color(0.97, 0.95, 0.9, 1))

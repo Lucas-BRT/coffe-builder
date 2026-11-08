@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Optional, Tuple, cast
 
 import ctypes
 import numpy as np
@@ -18,6 +18,11 @@ class Mesh:
     vao: int
     vbo: int
     vertex_count: int
+    # caixa que envolve a malha (mín, máx), usada para clicar nos objetos
+    bounds: Tuple[Tuple[float, float, float], Tuple[float, float, float]] = (
+        (0.0, 0.0, 0.0),
+        (0.0, 0.0, 0.0),
+    )
 
     @classmethod
     def from_vertices(cls, vertices: glm.array[glm.vec3], uvs=None) -> Mesh:
@@ -55,7 +60,11 @@ class Mesh:
         glBindVertexArray(0)
 
 
-        return cls(vao=vao, vbo=vbo, vertex_count=len(vertices))
+        bounds = (
+            tuple(float(v) for v in data[:, :3].min(axis=0)),
+            tuple(float(v) for v in data[:, :3].max(axis=0)),
+        )
+        return cls(vao=vao, vbo=vbo, vertex_count=len(vertices), bounds=bounds)
 
     def delete(self) -> None:
         """
@@ -166,6 +175,12 @@ class Entity:
     """
 
     transform: Transform
+    # estrutura da sala (chão, paredes, luz) não pode ser clicada nem movida
+    selectable: bool = True
+    # superfície: aceita props em cima (balcões, mesas). prop: pode ser apoiado
+    # numa superfície (xícara, cafeteira)
+    surface: bool = False
+    prop: bool = False
 
     def get_x(self) -> float:
         return self.transform.position.x
@@ -201,6 +216,12 @@ class Entity:
         """A matriz final: a própria, ou a própria dentro do espaço do pai"""
         return self.model if parent is None else compose(parent, self.model)
 
+    def bounds(
+        self, parent: Optional[glm.mat4x4] = None
+    ) -> Tuple[glm.vec3, glm.vec3]:
+        """Caixa alinhada aos eixos (mín, máx) que envolve o Entity no mundo"""
+        raise NotImplementedError
+
     def render(self, renderer, parent: Optional[glm.mat4x4] = None) -> None:
         raise NotImplementedError
 
@@ -223,6 +244,22 @@ class Object(Entity):
 
     def __post_init__(self) -> None:
         self.original_color = self.color
+
+    def bounds(
+        self, parent: Optional[glm.mat4x4] = None
+    ) -> Tuple[glm.vec3, glm.vec3]:
+        model = self.world_matrix(parent)
+        (x0, y0, z0), (x1, y1, z1) = self.mesh.bounds
+        corners = [
+            glm.vec3(model * glm.vec4(x, y, z, 1.0))
+            for x in (x0, x1)
+            for y in (y0, y1)
+            for z in (z0, z1)
+        ]
+        return (
+            glm.vec3(*(min(c[i] for c in corners) for i in range(3))),
+            glm.vec3(*(max(c[i] for c in corners) for i in range(3))),
+        )
 
     def render(self, renderer, parent: Optional[glm.mat4x4] = None) -> None:
         model = self.world_matrix(parent)
@@ -273,6 +310,16 @@ class Group(Entity):
 
     parts: List[Entity] = field(default_factory=list)
     transform: Transform = field(default_factory=Transform)
+
+    def bounds(
+        self, parent: Optional[glm.mat4x4] = None
+    ) -> Tuple[glm.vec3, glm.vec3]:
+        model = self.world_matrix(parent)
+        boxes = [part.bounds(model) for part in self.parts]
+        return (
+            glm.vec3(*(min(b[0][i] for b in boxes) for i in range(3))),
+            glm.vec3(*(max(b[1][i] for b in boxes) for i in range(3))),
+        )
 
     def render(self, renderer, parent: Optional[glm.mat4x4] = None) -> None:
         model = self.world_matrix(parent)

@@ -6,6 +6,8 @@ from src.objects.components import Cylinder
 
 @dataclass
 class RoundTable(Group):
+    surface = True
+
     radius: float = 0.45
     height: float = 0.75
     top_thickness: float = 0.04

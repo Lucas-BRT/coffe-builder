@@ -6,6 +6,8 @@ from src.objects.components import Block, Cylinder
 
 @dataclass
 class CoffeeMachine(Group):
+    prop = True
+
     width: float = 0.5
     depth: float = 0.32
     height: float = 0.36

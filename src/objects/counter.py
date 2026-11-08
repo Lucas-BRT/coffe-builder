@@ -20,6 +20,8 @@ class Counter(Group):
     depth:    profundidade do corpo no eixo Z
     overhang: quanto o tampo passa do corpo em cada borda
     """
+    surface = True
+
 
     length: float = 2.0
     height: float = 1.0

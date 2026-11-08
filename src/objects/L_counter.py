@@ -6,6 +6,8 @@ from src.objects.components import Block
 
 @dataclass
 class LCounter(Group):
+    surface = True
+
     length: float = 3.0
     wing: float = 1.4
     height: float = 1.0

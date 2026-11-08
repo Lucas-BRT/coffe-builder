@@ -112,6 +112,10 @@ class CoffeeShopScene(Scene):
             ),
         ]
 
+        # luz, chão e paredes ficam fixos
+        for structure in self.objects:
+            structure.selectable = False
+
         counter = LCounter(transform=Transform.at(-1.2, 0, -1.9))
         counter.parts += [
             CoffeeMachine(transform=Transform.at(0.7, counter.height, -0.1)),

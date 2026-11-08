@@ -8,6 +8,8 @@ from src.objects.components import Block
 
 @dataclass
 class CoffeeTable(Group):
+    surface = True
+
     width: float = 0.9
     depth: float = 0.5
     height: float = 0.42

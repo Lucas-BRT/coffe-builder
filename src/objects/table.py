@@ -19,6 +19,8 @@ class Table(Group):
     leg_thickness: espessura dos pés
     leg_inset:     quanto os pés ficam recuados da borda do tampo
     """
+    surface = True
+
 
     width: float = 0.8
     depth: float = 0.8

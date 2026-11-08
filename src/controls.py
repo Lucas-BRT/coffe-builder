@@ -9,7 +9,10 @@ from src.events import (
     CloseApplication,
     MoveCamera,
     MoveSelectedObject,
-    RemoveLastObject,
+    GrabObject,
+    ReleaseObject,
+    RemoveSelectedObject,
+    RotateSelectedObject,
     RotateCamera,
     RotateIsometricCamera,
     SelectNextObject,
@@ -51,7 +54,9 @@ class Controls:
             if key == glfw.KEY_TAB:
                 self.state.handle_event(SelectNextObject())
             if key == glfw.KEY_BACKSPACE:
-                self.state.handle_event(RemoveLastObject())
+                self.state.handle_event(RemoveSelectedObject())
+            if key == glfw.KEY_R:
+                self.state.handle_event(RotateSelectedObject())
             if key == glfw.KEY_ENTER:
                 self.state.handle_event(SpawObject(object=Square()))
             if (
@@ -119,8 +124,12 @@ class Controls:
                     y = obj.height / 2 if isinstance(obj, Block) else 0
                     obj.move_to(position.x, y, position.z)
                     self.state.handle_event(SpawObject(object=obj))
+            elif action == glfw.RELEASE:
+                self.state.handle_event(ReleaseObject())
             elif action == glfw.PRESS and self.state.camera_mode is CameraType.Isometric:
                 sidebar.dragging = sidebar.item_at(xpos, ypos)
+                if sidebar.dragging is None and xpos >= sidebar.width:
+                    self.state.handle_event(GrabObject())
 
         glfw.set_key_callback(self.state.window.inner, key_callback)
         glfw.set_cursor_pos_callback(self.state.window.inner, mouse_callback)

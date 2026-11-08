@@ -20,8 +20,23 @@ class SpawObject(Event):
 
 
 @dataclass
-class RemoveLastObject(Event):
+class RemoveSelectedObject(Event):
     pass
+
+
+@dataclass
+class GrabObject(Event):
+    """Clique no mundo: pega o objeto sob o cursor (ou limpa a seleção)"""
+
+
+@dataclass
+class ReleaseObject(Event):
+    pass
+
+
+@dataclass
+class RotateSelectedObject(Event):
+    degrees: float = 90.0
 
 
 @dataclass

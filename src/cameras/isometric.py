@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import cast
+from typing import Tuple, cast
 
 from pyglm import glm
 
@@ -60,6 +60,19 @@ class IsometricCamera(Camera):
         # "atrás" da câmera, e assim cenas grandes não ficam cortadas
         return glm.ortho(-z * aspect, z * aspect, -z, z, -100.0, 100.0)
 
+    def mouse_ray(
+        self, x: float, y: float, window_width: int, window_height: int, aspect: float
+    ) -> Tuple[glm.vec3, glm.vec3]:
+        """Raio (origem, direção) que sai da câmera passando pelo cursor"""
+        ndc_x = 2.0 * x / window_width - 1.0
+        ndc_y = 1.0 - 2.0 * y / window_height
+        inverse_view_projection = glm.inverse(self.projection_matrix(aspect) * self.view)
+        near = inverse_view_projection * glm.vec4(ndc_x, ndc_y, -1.0, 1.0)
+        far = inverse_view_projection * glm.vec4(ndc_x, ndc_y, 1.0, 1.0)
+        near = glm.vec3(near) / near.w
+        far = glm.vec3(far) / far.w
+        return near, far - near
+
     def mouse_to_world(
         self,
         x: float,
@@ -70,15 +83,7 @@ class IsometricCamera(Camera):
         plane_y: float = 0.0,
     ) -> glm.vec3:
         """Converte a posição GLFW do cursor no ponto do plano horizontal."""
-        ndc_x = 2.0 * x / window_width - 1.0
-        ndc_y = 1.0 - 2.0 * y / window_height
-        inverse_view_projection = glm.inverse(self.projection_matrix(aspect) * self.view)
-
-        near = inverse_view_projection * glm.vec4(ndc_x, ndc_y, -1.0, 1.0)
-        far = inverse_view_projection * glm.vec4(ndc_x, ndc_y, 1.0, 1.0)
-        near = glm.vec3(near) / near.w
-        far = glm.vec3(far) / far.w
-        direction = far - near
+        near, direction = self.mouse_ray(x, y, window_width, window_height, aspect)
 
         if abs(direction.y) < 1e-8:
             raise ValueError("raio do mouse paralelo ao plano")

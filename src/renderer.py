@@ -92,6 +92,8 @@ class Renderer:
         glPolygonMode(GL_FRONT_AND_BACK, self.render_mode.value)
         glClearColor(*COLORS["WHITE"].to_gpu())
         glEnable(GL_DEPTH_TEST)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     def render(self) -> None:
         cam = self.state.camera
@@ -144,6 +146,8 @@ class Renderer:
         # usando o renderizador atual
         self.state.scene.render(self)
         if self.state.camera_mode is CameraType.Isometric:
+            for box in self.state.highlights():
+                box.render(self)
             self.state.cursor.render(self)
             self.sidebar.render(
                 self.state.window.width,
