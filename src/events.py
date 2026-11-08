@@ -35,6 +35,16 @@ class ReleaseObject(Event):
 
 
 @dataclass
+class ToggleNight(Event):
+    pass
+
+
+@dataclass
+class InteractWithSelectedObject(Event):
+    """Espaço: aciona o objeto selecionado (ligar/desligar a luminária)"""
+
+
+@dataclass
 class RotateSelectedObject(Event):
     degrees: float = 90.0
 

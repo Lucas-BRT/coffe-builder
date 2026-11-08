@@ -26,6 +26,13 @@ BACK_WALL_COLOR = Color(0.1, 0.6, 0.58, 1)  # verde-azulado
 SIDE_WALL_COLOR = Color(0.96, 0.72, 0.2, 1)  # mostarda
 LIGHT_COLOR = Color(1.0, 0.86, 0.62, 1)
 
+# astro que ilumina a sala de longe: sol de dia, lua (mais fraca e azulada) de noite
+SUN_POSITION = (40.0, 50.0, 40.0)
+SUN_INTENSITY = 0.35
+MOON_COLOR = Color(0.5, 0.62, 1.0, 1)
+MOON_POSITION = (-40.0, 45.0, -30.0)
+MOON_INTENSITY = 0.12
+
 COUNTER_BODY_COLOR = Color(0.78, 0.2, 0.18, 1)  # vermelho tijolo
 COUNTER_TOP_COLOR = Color(0.97, 0.95, 0.9, 1)  # mármore claro
 COUNTER_PLINTH_COLOR = Color(0.2, 0.12, 0.08, 1)
@@ -74,11 +81,13 @@ class CoffeeShopScene(Scene):
             width=0.35,
             height=0.35,
             depth=0.35,
-            transform=Transform.at(0, 2.0, 0),
+            transform=Transform.at(*SUN_POSITION),
             color=LIGHT_COLOR,
             emissive=True,
         )
         self.objects.append(self.light)
+        self.sky_intensity = SUN_INTENSITY
+        self.night = False
 
         self.objects.append(
             Block(
@@ -134,3 +143,10 @@ class CoffeeShopScene(Scene):
         self.objects.append(CoffeeTable(transform=Transform.at(1.5, 0, 1.9)))
         self.objects.append(Armchair(transform=Transform.at(0.7, 0, 1.9, ry=90)))
         self.objects.append(Armchair(transform=Transform.at(2.3, 0, 1.9, ry=-90)))
+
+    def toggle_night(self) -> None:
+        """Troca o sol pela lua e vice-versa"""
+        self.night = not self.night
+        self.light.color = MOON_COLOR if self.night else LIGHT_COLOR
+        self.light.move_to(*(MOON_POSITION if self.night else SUN_POSITION))
+        self.sky_intensity = MOON_INTENSITY if self.night else SUN_INTENSITY

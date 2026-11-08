@@ -10,6 +10,7 @@ from src.events import (
     MoveCamera,
     MoveSelectedObject,
     GrabObject,
+    InteractWithSelectedObject,
     ReleaseObject,
     RemoveSelectedObject,
     RotateSelectedObject,
@@ -17,6 +18,7 @@ from src.events import (
     RotateIsometricCamera,
     SelectNextObject,
     SpawObject,
+    ToggleNight,
     UpdateZoomLevel,
 )
 from src.objects.components import Block
@@ -55,6 +57,10 @@ class Controls:
                 self.state.handle_event(SelectNextObject())
             if key == glfw.KEY_BACKSPACE:
                 self.state.handle_event(RemoveSelectedObject())
+            if key == glfw.KEY_N:
+                self.state.handle_event(ToggleNight())
+            if key == glfw.KEY_SPACE:
+                self.state.handle_event(InteractWithSelectedObject())
             if key == glfw.KEY_R:
                 self.state.handle_event(RotateSelectedObject())
             if key == glfw.KEY_ENTER:

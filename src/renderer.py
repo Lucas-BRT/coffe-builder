@@ -1,6 +1,7 @@
 from enum import Enum
 from pathlib import Path
 
+import numpy as np
 from OpenGL.GL import *
 from pyglm import glm
 
@@ -35,10 +36,20 @@ class Renderer:
         self.self_shadow_uniform_loc = glGetUniformLocation(
             self.shader, "self_shadow_enabled"
         )
-        self.light_position_uniform_loc = glGetUniformLocation(
-            self.shader, "light_position"
+        self.light_count_uniform_loc = glGetUniformLocation(self.shader, "light_count")
+        self.shadow_light_uniform_loc = glGetUniformLocation(
+            self.shader, "shadow_light"
         )
-        self.light_color_uniform_loc = glGetUniformLocation(self.shader, "light_color")
+        self.light_positions_uniform_loc = glGetUniformLocation(
+            self.shader, "light_positions"
+        )
+        self.light_colors_uniform_loc = glGetUniformLocation(
+            self.shader, "light_colors"
+        )
+        self.light_falloff_uniform_loc = glGetUniformLocation(
+            self.shader, "light_falloff"
+        )
+        self.lights: list = []
         self.camera_position_uniform_loc = glGetUniformLocation(
             self.shader, "camera_position"
         )
@@ -106,7 +117,6 @@ class Renderer:
             / max(self.state.window.framebuffer_height, 1)
         )
         self.grid_visible = self.state.camera_mode is CameraType.Isometric
-        light = getattr(self.state.scene, "light", None)
         glClear(GL_DEPTH_BUFFER_BIT)
         glClear(GL_COLOR_BUFFER_BIT)
         glUseProgram(self.shader)
@@ -124,16 +134,23 @@ class Renderer:
         glUniform1f(self.shadow_far_uniform_loc, self.shadow_far_plane)
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_CUBE_MAP, self.shadow_map)
-        if light is not None:
-            position = light.transform.position
-            glUniform3f(
-                self.light_position_uniform_loc, position.x, position.y, position.z
+        self.lights = self.state.scene.light_sources()
+        glUniform1i(self.light_count_uniform_loc, len(self.lights))
+        if self.lights:
+            glUniform3fv(
+                self.light_positions_uniform_loc,
+                len(self.lights),
+                np.array([p.to_tuple() for p, _, _ in self.lights], dtype=np.float32),
             )
-            glUniform3f(
-                self.light_color_uniform_loc,
-                light.color.r,
-                light.color.g,
-                light.color.b,
+            glUniform3fv(
+                self.light_colors_uniform_loc,
+                len(self.lights),
+                np.array([(c.r, c.g, c.b) for _, c, _ in self.lights], dtype=np.float32),
+            )
+            glUniform1fv(
+                self.light_falloff_uniform_loc,
+                len(self.lights),
+                np.array([f for _, _, f in self.lights], dtype=np.float32),
             )
         if self.grid_visible:
             self.state.update_world_grid(
@@ -166,7 +183,18 @@ class Renderer:
             (glm.vec3(0, 0, 1), glm.vec3(0, -1, 0)),
             (glm.vec3(0, 0, -1), glm.vec3(0, -1, 0)),
         )
-        light_position = self.state.scene.light.transform.position
+        # a sombra própria vem da lâmpada mais próxima do objeto. Sol e lua ficam
+        # de fora: de tão longe o mapa de sombra fica sem resolução e dá acne
+        lamps = [i for i, (_, _, falloff) in enumerate(self.lights) if falloff > 0]
+        if not lamps:
+            glUniform1i(self.shadow_light_uniform_loc, -1)
+            return
+        low, high = entity.bounds()
+        center = (low + high) / 2
+        shadow_light = min(
+            lamps, key=lambda i: glm.distance(self.lights[i][0], center)
+        )
+        light_position = self.lights[shadow_light][0]
         projection = glm.perspective(
             glm.radians(90.0), 1.0, 0.1, self.shadow_far_plane
         )
@@ -211,6 +239,7 @@ class Renderer:
         )
         glPolygonMode(GL_FRONT_AND_BACK, self.render_mode.value)
         glUseProgram(self.shader)
+        glUniform1i(self.shadow_light_uniform_loc, shadow_light)
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_CUBE_MAP, self.shadow_map)
 

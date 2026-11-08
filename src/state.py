@@ -19,6 +19,7 @@ from src.events import (
     MoveCamera,
     MoveSelectedObject,
     GrabObject,
+    InteractWithSelectedObject,
     ReleaseObject,
     RemoveSelectedObject,
     RotateCamera,
@@ -26,6 +27,7 @@ from src.events import (
     RotateSelectedObject,
     SelectNextObject,
     SpawObject,
+    ToggleNight,
     UpdateZoomLevel,
 )
 from src.objects import COLORS, Color, Entity, Group, Transform
@@ -347,6 +349,18 @@ class State:
             scale=obj.transform.scale,
         )
         parent.parts.append(obj)
+
+    @handle_event.register
+    def _(self, event: ToggleNight) -> None:
+        toggle = getattr(self.scene, "toggle_night", None)
+        if toggle is not None:
+            toggle()
+
+    @handle_event.register
+    def _(self, event: InteractWithSelectedObject) -> None:
+        toggle = getattr(self.selected_entity, "toggle", None)
+        if toggle is not None:
+            toggle()
 
     @handle_event.register
     def _(self, event: RotateSelectedObject) -> None:
