@@ -3,10 +3,16 @@ from __future__ import annotations
 from typing import List
 
 from src.objects import COLORS, Color, Entity, Group, Transform
-from src.objects.chair import Chair
+from src.objects.armchair import Armchair
+from src.objects.cafe_chair import CafeChair
+from src.objects.coffee_machine import CoffeeMachine
+from src.objects.coffee_table import CoffeeTable
 from src.objects.components import Block
-from src.objects.counter import Counter
-from src.objects.table import Table
+from src.objects.cup import Cup
+from src.objects.floor_lamp import FloorLamp
+from src.objects.L_counter import LCounter
+from src.objects.menu import Menu
+from src.objects.round_table import RoundTable
 from src.scenes import Scene
 from src.texture import Texture
 
@@ -38,13 +44,15 @@ SEAT_COLORS = [
 
 def dining_set(x: float, z: float, seat_color: Color) -> Group:
     """Uma mesa com 4 cadeiras viradas para ela, uma de cada lado"""
-    table = Table(top_color=TABLE_TOP_COLOR, leg_color=WOOD_COLOR)
+    table = RoundTable(top_color=TABLE_TOP_COLOR, leg_color=WOOD_COLOR)
     # centro da cadeira até o centro da mesa: metade da mesa + metade do
     # assento, menos um pouco para a cadeira ficar "enfiada" embaixo do tampo
     distance = table.width / 2 + 0.21 - 0.06
 
-    def chair(transform: Transform) -> Chair:
-        return Chair(transform=transform, frame_color=WOOD_COLOR, seat_color=seat_color)
+    def chair(transform: Transform) -> CafeChair:
+        return CafeChair(
+            transform=transform, frame_color=WOOD_COLOR, seat_color=seat_color
+        )
 
     chairs: List[Entity] = [
         chair(Transform.at(0, 0, -distance)),
@@ -85,43 +93,40 @@ class CoffeeShopScene(Scene):
             )
         )
 
-        side_wall = Block(
-            width=WALL_THICKNESS,
-            height=WALL_HEIGHT,
-            depth=ROOM_SIZE,
-            transform=Transform.at(-half - WALL_THICKNESS / 2, WALL_HEIGHT / 2, 0),
-            color=SIDE_WALL_COLOR,
-        )
-
-        back_wall = Block(
-            width=ROOM_SIZE + WALL_THICKNESS,
-            height=WALL_HEIGHT,
-            depth=WALL_THICKNESS,
-            transform=Transform.at(
-                -WALL_THICKNESS / 2, WALL_HEIGHT / 2, -half - WALL_THICKNESS / 2
+        self.objects += [
+            Block(
+                width=ROOM_SIZE + WALL_THICKNESS,
+                height=WALL_HEIGHT,
+                depth=WALL_THICKNESS,
+                transform=Transform.at(
+                    -WALL_THICKNESS / 2, WALL_HEIGHT / 2, -half - WALL_THICKNESS / 2
+                ),
+                color=BACK_WALL_COLOR,
             ),
-            color=BACK_WALL_COLOR,
-        )
+            Block(
+                width=WALL_THICKNESS,
+                height=WALL_HEIGHT,
+                depth=ROOM_SIZE,
+                transform=Transform.at(-half - WALL_THICKNESS / 2, WALL_HEIGHT / 2, 0),
+                color=SIDE_WALL_COLOR,
+            ),
+        ]
 
-        floor = Block(
-            width=ROOM_SIZE,
-            height=FLOOR_THICKNESS,
-            depth=ROOM_SIZE,
-            transform=Transform.at(0, -FLOOR_THICKNESS / 2, 0),
-            color=FLOOR_COLOR,
-        )
-
-        counter = Counter(
-            length=3.0,
-            transform=Transform.at(-1.2, 0, -1.9),
-            body_color=COUNTER_BODY_COLOR,
-            top_color=COUNTER_TOP_COLOR,
-            plinth_color=COUNTER_PLINTH_COLOR,
-        )
-
-        self.objects += [floor, side_wall, back_wall, counter]
+        counter = LCounter(transform=Transform.at(-1.2, 0, -1.9))
+        counter.parts += [
+            CoffeeMachine(transform=Transform.at(0.7, counter.height, -0.1)),
+            Cup(transform=Transform.at(0.0, counter.height, 0.1)),
+            Cup(transform=Transform.at(-0.35, counter.height, 0.05, ry=40)),
+        ]
+        self.objects.append(counter)
+        self.objects.append(FloorLamp(transform=Transform.at(-2.6, 0, 2.4)))
+        self.objects.append(Menu(transform=Transform.at(-1.2, 0, -half + 0.04 / 2)))
 
         # 4 mesas em grade 2x2 na parte da frente da sala
-        positions = [(x, z) for x in (-1.5, 1.5) for z in (-0.2, 1.9)]
+        positions = [(x, z) for x in (-1.5, 1.5) for z in (-0.2, 1.9) if (x, z) != (1.5, 1.9)]
         for (x, z), seat_color in zip(positions, SEAT_COLORS):
             self.objects.append(dining_set(x, z, seat_color))
+
+        self.objects.append(CoffeeTable(transform=Transform.at(1.5, 0, 1.9)))
+        self.objects.append(Armchair(transform=Transform.at(0.7, 0, 1.9, ry=90)))
+        self.objects.append(Armchair(transform=Transform.at(2.3, 0, 1.9, ry=-90)))
