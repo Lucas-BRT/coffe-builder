@@ -6,12 +6,16 @@ from src.objects import Color, Entity, Group, Transform
 from src.objects.chair import Chair
 from src.objects.components import Block
 from src.objects.counter import Counter
-from src.objects.table import Table
+from src.objects.round_table import RoundTable
 from src.scenes import Scene
 from src.objects.coffee_machine import CoffeeMachine
 from src.objects.cup import Cup
 from src.objects.floor_lamp import FloorLamp
 from src.objects.menu import Menu
+from src.objects.armchair import Armchair
+from src.objects.coffee_table import CoffeeTable
+from src.objects.L_counter import LCounter
+
 
 ROOM_SIZE = 6.0
 WALL_HEIGHT = 2.4
@@ -40,7 +44,7 @@ SEAT_COLORS = [
 
 def dining_set(x: float, z: float, seat_color: Color) -> Group:
     """Uma mesa com 4 cadeiras viradas para ela, uma de cada lado"""
-    table = Table(top_color=TABLE_TOP_COLOR, leg_color=WOOD_COLOR)
+    table = RoundTable(top_color=TABLE_TOP_COLOR, leg_color=WOOD_COLOR)
     # centro da cadeira até o centro da mesa: metade da mesa + metade do
     # assento, menos um pouco para a cadeira ficar "enfiada" embaixo do tampo
     distance = table.width / 2 + 0.21 - 0.06
@@ -98,13 +102,7 @@ class CoffeeShopScene(Scene):
         for structure in self.objects:
             structure.selectable = False
 
-        counter = Counter(
-            length=3.0,
-            transform=Transform.at(-1.2, 0, -1.9),
-            body_color=COUNTER_BODY_COLOR,
-            top_color=COUNTER_TOP_COLOR,
-            plinth_color=COUNTER_PLINTH_COLOR,
-        )
+        counter = LCounter(transform=Transform.at(-1.2, 0, -1.9))
 
         counter.parts += [
             CoffeeMachine(transform=Transform.at(0.7, counter.height, -0.1)),
@@ -120,6 +118,10 @@ class CoffeeShopScene(Scene):
         self.objects.append(board)
 
         # 4 mesas em grade 2x2 na parte da frente da sala
-        positions = [(x, z) for x in (-1.5, 1.5) for z in (-0.2, 1.9)]
+        positions = [(x, z) for x in (-1.5, 1.5) for z in (-0.2, 1.9) if (x, z) != (1.5, 1.9)]
         for (x, z), seat_color in zip(positions, SEAT_COLORS):
             self.objects.append(dining_set(x, z, seat_color))
+
+        self.objects.append(CoffeeTable(transform=Transform.at(1.5, 0, 1.9)))
+        self.objects.append(Armchair(transform=Transform.at(0.7, 0, 1.9, ry=90)))
+        self.objects.append(Armchair(transform=Transform.at(2.3, 0, 1.9, ry=-90)))
