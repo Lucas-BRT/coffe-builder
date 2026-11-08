@@ -12,6 +12,10 @@ uniform samplerCube shadow_map;
 uniform float shadow_far_plane;
 out vec4 FragColor;
 
+in vec2 vTexCoord;
+uniform sampler2D tex;
+uniform bool useTexture;
+
 void main() {
     if (emissive) {
         FragColor = color;
@@ -25,7 +29,8 @@ void main() {
     float diffuse = max(dot(n, light_direction), 0.0);
     float attenuation =
         1.0 / (1.0 + 0.12 * distance_to_light + 0.035 * distance_to_light * distance_to_light);
-    vec3 base_color = color.rgb;
+    vec4 base = useTexture ? texture(tex, vTexCoord) * color : color;
+    vec3 base_color = base.rgb;
 
     if (grid_enabled && abs(n.y) > 0.95) {
         vec2 distance_to_line = abs(fract(vPos.xz - 0.5) - 0.5);
@@ -50,5 +55,5 @@ void main() {
     vec3 ambient = base_color * 0.2;
     vec3 direct = (base_color * diffuse + vec3(specular * 0.4))
         * light_color * attenuation * 3.0 * (1.0 - shadow);
-    FragColor = vec4(ambient + direct, color.a);
+    FragColor = vec4(ambient + direct, base.a);
 }

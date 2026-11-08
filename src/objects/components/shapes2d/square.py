@@ -8,7 +8,7 @@ from src.objects import Mesh, Object
 
 
 def _square_mesh(side: float) -> Mesh:
-    return Mesh.from_vertices(Square.build_vertices(side))
+    return Mesh.from_vertices(Square.build_vertices(side), Square.build_uvs())
 
 
 @dataclass
@@ -48,6 +48,17 @@ class Square(Object):
                 glm.vec3(h, h, 0),
             ]
         )
+
+    @staticmethod
+    def build_uvs(u_repeat: float=1.0, v_repeat: float = 1.0) -> glm.array[glm.vec2]:
+        return glm.array([
+            glm.vec2(0, v_repeat),
+            glm.vec2(0, 0),
+            glm.vec2(u_repeat, 0),
+            glm.vec2(0, v_repeat),
+            glm.vec2(u_repeat, 0),
+            glm.vec2(u_repeat, v_repeat)
+        ])
 
     def vertices(self) -> glm.array[glm.vec3]:
         return Square.build_vertices(self.side)

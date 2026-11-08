@@ -3,6 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, cast
 
+import ctypes
+import numpy as np
+from src.texture import Texture
+
 from OpenGL.GL import *
 from pyglm import glm
 
@@ -16,7 +20,7 @@ class Mesh:
     vertex_count: int
 
     @classmethod
-    def from_vertices(cls, vertices: glm.array[glm.vec3]) -> Mesh:
+    def from_vertices(cls, vertices: glm.array[glm.vec3], uvs=None) -> Mesh:
         """
         Retorna Mesh entre aspas pq aparentemente o Python é burro e não consegue instanciar
         a classe quando lê ela. Longa história, mas no final, tudo se resume a: Saudades
@@ -27,16 +31,29 @@ class Mesh:
             raise TypeError(
                 f"esperava um glm.array de vec3 (float32), veio {vertices.element_type}"
             )
+        if uvs is None:
+            uvs = glm.array([glm.vec2(0,0)] * len(vertices))
+        elif len(uvs) != len(vertices):
+            raise ValueError("uvs e vertices precisam tem o mesmo tamanho")
+
+
+        data = np.array(
+            [[v.x, v.y, v.z, t.x, t.y] for v, t in zip(vertices, uvs)],
+            dtype = np.float32,
+        )
 
         vao = int(glGenVertexArrays(1))
         vbo = int(glGenBuffers(1))
 
         glBindVertexArray(vao)
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices.ptr, GL_STATIC_DRAW)
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, glm.sizeof(glm.vec3), None)
+        glBufferData(GL_ARRAY_BUFFER, data.nbytes, data, GL_STATIC_DRAW)
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,5 * 4 , ctypes.c_void_p(0))
         glEnableVertexAttribArray(0)
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * 4, ctypes.c_void_p(3 * 4))
+        glEnableVertexAttribArray(1)
         glBindVertexArray(0)
+
 
         return cls(vao=vao, vbo=vbo, vertex_count=len(vertices))
 
@@ -103,7 +120,7 @@ class Color:
     r: float
     g: float
     b: float
-    a: float
+    a: float = 1
 
     def to_gpu(self) -> glm.vec4:
         return glm.vec4(self.r, self.g, self.b, self.a)
@@ -201,6 +218,7 @@ class Object(Entity):
     grid_enabled: bool = False
     emissive: bool = False
     self_shadow_enabled: bool = True
+    texture: Optional["Texture"] = None
     original_color: Color = field(init=False)
 
     def __post_init__(self) -> None:
@@ -225,6 +243,11 @@ class Object(Entity):
         )
         glBindVertexArray(self.mesh.vao)
         # toda malha é uma lista de triângulos soltos (3 vértices cada)
+        if self.texture is not None:
+            self.texture.bind(1)
+            glUniform1i(renderer.use_texture_uniform_loc, 1)
+        else:
+            glUniform1i(renderer.use_texture_uniform_loc, 0)
         glDrawArrays(GL_TRIANGLES, 0, self.mesh.vertex_count)
 
     def render_shadow(

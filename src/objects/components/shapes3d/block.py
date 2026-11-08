@@ -9,8 +9,8 @@ from src.objects import Mesh, Object, transform_vertices
 from src.objects.components.shapes2d.square import Square
 
 
-def _block_mesh(width: float, height: float, depth: float) -> Mesh:
-    return Mesh.from_vertices(Block.build_vertices(width, height, depth))
+def _block_mesh(width: float, height: float, depth: float, tile=None) -> Mesh:
+    return Mesh.from_vertices(Block.build_vertices(width, height, depth), Block.build_uvs(width, height, depth, tile))
 
 
 @dataclass
@@ -25,6 +25,7 @@ class Block(Object):
     width: float = 1.0
     height: float = 1.0
     depth: float = 1.0
+    uv_tile: Optional[float] = None
 
     # Redefine o campo do pai: o Block cria a malha sozinho, então ela
     # não entra mais no __init__.
@@ -33,7 +34,7 @@ class Block(Object):
     def __post_init__(self) -> None:
         if self.width <= 0 or self.height <= 0 or self.depth <= 0:
             raise ValueError("Width, Height and Depth should be positive")
-        self.mesh = _block_mesh(self.width, self.height, self.depth)
+        self.mesh = _block_mesh(self.width, self.height, self.depth, self.uv_tile)
         super().__post_init__()
 
     @classmethod
@@ -70,6 +71,22 @@ class Block(Object):
             + face(glm.vec3(0, h, 0), -90, x_axis, width, depth)  # topo
             + face(glm.vec3(0, -h, 0), 90, x_axis, width, depth)  # base
         )
+
+    @staticmethod
+    def build_uvs(width, height, depth, tile=None) -> glm.array[glm.vec2]:
+
+        def rep(size: float) -> float:
+            return 1.0 if tile is None else size/tile
+
+        faces = [
+            (width, height), (width, height),
+            (depth, height), (depth, height),
+            (width, depth),  (width, depth),
+        ]
+        uvs = []
+        for size_x, size_y in faces:
+            uvs += list(Square.build_uvs(rep(size_x), rep(size_y)))
+        return glm.array(uvs)
 
     def vertices(self) -> glm.array[glm.vec3]:
         return Block.build_vertices(self.width, self.height, self.depth)

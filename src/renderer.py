@@ -61,6 +61,8 @@ class Renderer:
         self.shadow_far_plane_uniform_loc = glGetUniformLocation(
             self.shadow_shader, "shadow_far_plane"
         )
+        self.texture_uniform_loc = glGetUniformLocation(self.shader, "tex")
+        self.use_texture_uniform_loc = glGetUniformLocation(self.shader, "useTexture")
         self.grid_visible = False
         self.state = state
         self.sidebar = Sidebar()
@@ -115,6 +117,7 @@ class Renderer:
             camera_position.y,
             camera_position.z,
         )
+        glUniform1i(self.texture_uniform_loc, 1)
         glUniform1i(self.shadow_map_uniform_loc, 0)
         glUniform1f(self.shadow_far_uniform_loc, self.shadow_far_plane)
         glActiveTexture(GL_TEXTURE0)
@@ -208,9 +211,9 @@ class Renderer:
         glBindTexture(GL_TEXTURE_CUBE_MAP, self.shadow_map)
 
     def togle_render_mode(self):
-        if self.render_mode == RenderMode.NORMAL:
+        if self.render_mode is RenderMode.NORMAL:
             self.render_mode = RenderMode.WIREFRAME
-        else:
+        elif self.render_mode is RenderMode.WIREFRAME:
             self.render_mode = RenderMode.NORMAL
 
     @staticmethod
