@@ -37,6 +37,12 @@ class Block(Object):
         self.mesh = _block_mesh(self.width, self.height, self.depth, self.uv_tile)
         super().__post_init__()
 
+    def apply_texture(self, texture, tile=None) -> None:
+        old, self.uv_tile = self.mesh, tile
+        self.mesh = _block_mesh(self.width, self.height, self.depth, tile)
+        old.delete()
+        self.texture = texture
+
     @classmethod
     def cube(cls, side: float = 1.0, **kwargs) -> Block:
         return cls(width=side, height=side, depth=side, **kwargs)

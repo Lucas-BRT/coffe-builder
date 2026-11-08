@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List
 
-from src.objects import COLORS, Color, Entity, Group, Transform
+from src.objects import COLORS, Color, Entity, Group, Transform, texturize
 from src.objects.components import Block
 
 
@@ -64,3 +64,6 @@ class Table(Group):
             color=self.top_color,
         )
         self.parts = [*legs, top]
+
+        texturize(self.parts, "madeira_clara.png", 0.4, self.leg_color)
+        texturize(self.parts, "marmore.png", 0.8, self.top_color)

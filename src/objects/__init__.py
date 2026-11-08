@@ -261,6 +261,14 @@ class Object(Entity):
             glm.vec3(*(max(c[i] for c in corners) for i in range(3))),
         )
 
+    def apply_texture(self, texture: Texture, tile: Optional[float] = None) -> None:
+        """
+        Põe uma textura no objeto. tile é o tamanho, em metros, que uma repetição da
+        imagem cobre (None estica a imagem inteira em cada face). Formas com UV
+        sobrescrevem para refazer a malha.
+        """
+        self.texture = texture
+
     def render(self, renderer, parent: Optional[glm.mat4x4] = None) -> None:
         model = self.world_matrix(parent)
 
@@ -332,3 +340,16 @@ class Group(Entity):
         model = self.world_matrix(parent)
         for part in self.parts:
             part.render_shadow(renderer, model)
+
+
+def texturize(
+    parts: List[Entity], texture_name: str, tile: Optional[float], *colors: Color
+) -> None:
+    """
+    Aplica a textura nas peças (Objects) que têm uma dessas cores. Sem cores, em
+    todas. Serve para montar um móvel por cor e depois dizer "o que é madeira"
+    """
+    texture = Texture.load(texture_name)
+    for part in parts:
+        if isinstance(part, Object) and (not colors or part.color in colors):
+            part.apply_texture(texture, tile)

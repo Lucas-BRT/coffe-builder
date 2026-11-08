@@ -111,6 +111,8 @@ class CoffeeShopScene(Scene):
                     -WALL_THICKNESS / 2, WALL_HEIGHT / 2, -half - WALL_THICKNESS / 2
                 ),
                 color=BACK_WALL_COLOR,
+                texture=Texture.load("reboco.png"),
+                uv_tile=1.5,
             ),
             Block(
                 width=WALL_THICKNESS,
@@ -118,6 +120,8 @@ class CoffeeShopScene(Scene):
                 depth=ROOM_SIZE,
                 transform=Transform.at(-half - WALL_THICKNESS / 2, WALL_HEIGHT / 2, 0),
                 color=SIDE_WALL_COLOR,
+                texture=Texture.load("reboco.png"),
+                uv_tile=1.5,
             ),
         ]
 

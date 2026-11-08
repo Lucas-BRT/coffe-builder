@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List
 
-from src.objects import COLORS, Color, Entity, Group, Transform
+from src.objects import COLORS, Color, Entity, Group, Transform, texturize
 from src.objects.components import Block
 
 @dataclass
@@ -68,3 +68,6 @@ class Armchair(Group):
                       0, body_y + seat_base_h + cushion_h + 0.15, -d / 2 + back_t + 0.03),
                   color=lighter(self.fabric_color)),
         ]
+
+        texturize(self.parts, "tecido.png", 0.3)
+        texturize(self.parts, "madeira_clara.png", 0.3, self.frame_color)

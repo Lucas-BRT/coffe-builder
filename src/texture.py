@@ -1,5 +1,6 @@
 from enum import Enum
 from pathlib import Path
+from typing import Dict
 
 from OpenGL.GL import *
 from PIL import Image, ImageOps
@@ -8,6 +9,15 @@ TEXTURES_DIR = Path(__file__).resolve().parent.parent / "assets" / "textures"
 
 
 class Texture:
+    _cache: Dict[str, "Texture"] = {}
+
+    @classmethod
+    def load(cls, file_name: str) -> "Texture":
+        """Carrega uma vez só: vários objetos usam a mesma imagem na GPU"""
+        if file_name not in cls._cache:
+            cls._cache[file_name] = cls(file_name)
+        return cls._cache[file_name]
+
     def __init__(self, file_name: str, pixelated: bool = False) -> None:
         # RGBA sempre: evita ter que escolher GL_RGB ou GL_RGBA pelo número de canais
         image = Image.open(TEXTURES_DIR / file_name).convert("RGBA")

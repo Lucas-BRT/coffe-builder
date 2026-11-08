@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
 
 from pyglm import glm
 
@@ -9,8 +9,13 @@ from src.objects import Mesh, Object, transform_vertices
 from src.objects.components.shapes2d.circle import Circle
 
 
-def _cylinder_mesh(radius: float, height: float, segments: int) -> Mesh:
-    return Mesh.from_vertices(Cylinder.build_vertices(radius, height, segments))
+def _cylinder_mesh(
+    radius: float, height: float, segments: int, tile: Optional[float] = None
+) -> Mesh:
+    return Mesh.from_vertices(
+        Cylinder.build_vertices(radius, height, segments),
+        Cylinder.build_uvs(radius, height, segments, tile),
+    )
 
 
 @dataclass
@@ -26,6 +31,7 @@ class Cylinder(Object):
     radius: float = 0.5
     height: float = 1.0
     segments: int = 32
+    uv_tile: Optional[float] = None
 
     # Redefine o campo do pai: o Cylinder cria a malha sozinho, então ela
     # não entra mais no __init__.
@@ -36,8 +42,14 @@ class Cylinder(Object):
             raise ValueError("Radius and Height should be positive")
         if self.segments < 3:
             raise ValueError("Cylinder needs at least 3 segments")
-        self.mesh = _cylinder_mesh(self.radius, self.height, self.segments)
+        self.mesh = _cylinder_mesh(self.radius, self.height, self.segments, self.uv_tile)
         super().__post_init__()
+
+    def apply_texture(self, texture, tile=None) -> None:
+        old, self.uv_tile = self.mesh, tile
+        self.mesh = _cylinder_mesh(self.radius, self.height, self.segments, tile)
+        old.delete()
+        self.texture = texture
 
     @staticmethod
     def build_vertices(radius: float, height: float, segments: int) -> glm.array[glm.vec3]:
@@ -71,6 +83,40 @@ class Cylinder(Object):
             side += [bottom_a, bottom_b, top_b, bottom_a, top_b, top_a]
 
         return glm.array(list(top) + list(bottom) + side)
+
+    @staticmethod
+    def build_uvs(
+        radius: float, height: float, segments: int, tile: Optional[float] = None
+    ) -> glm.array[glm.vec2]:
+        """
+        Mesma ordem de build_vertices. Tampas: projeção por cima. Lateral: a imagem
+        dá a volta no cilindro. tile é o tamanho em metros de uma repetição; sem
+        ele, a imagem cobre a tampa inteira e a lateral inteira uma vez.
+        """
+        cap_scale = tile or 2 * radius
+        circumference = 2 * glm.pi() * radius
+        around = circumference / (tile or circumference)
+        up = height / (tile or height)
+
+        uvs: List[glm.vec2] = []
+        for _ in range(2):  # tampa de cima e de baixo
+            for i in range(segments):
+                a = 2 * glm.pi() * i / segments
+                b = 2 * glm.pi() * (i + 1) / segments
+                for angle, r in ((0.0, 0.0), (a, radius), (b, radius)):
+                    uvs.append(
+                        glm.vec2(
+                            0.5 + r * glm.cos(angle) / cap_scale,
+                            0.5 + r * glm.sin(angle) / cap_scale,
+                        )
+                    )
+        for i in range(segments):
+            ua, ub = around * i / segments, around * (i + 1) / segments
+            uvs += [
+                glm.vec2(ua, 0), glm.vec2(ub, 0), glm.vec2(ub, up),
+                glm.vec2(ua, 0), glm.vec2(ub, up), glm.vec2(ua, up),
+            ]
+        return glm.array(uvs)
 
     def vertices(self) -> glm.array[glm.vec3]:
         return Cylinder.build_vertices(self.radius, self.height, self.segments)

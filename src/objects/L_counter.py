@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List
 
-from src.objects import COLORS, Color, Entity, Group, Transform
+from src.objects import COLORS, Color, Entity, Group, Transform, texturize
 from src.objects.components import Block
 
 @dataclass
@@ -45,3 +45,6 @@ class LCounter(Group):
             Block(width=L + 2 * o, height=tt, depth=D + 2 * o,transform=Transform.at(0, top_y, 0), color=self.top_color),
             Block(width=D + 2 * o, height=tt, depth=W, transform=Transform.at(wing_x + 0.0, top_y, D / 2 + o + W / 2), color=self.top_color),
         ]
+
+        texturize(self.parts, "madeira_clara.png", 0.6, self.body_color)
+        texturize(self.parts, "marmore.png", 0.8, self.top_color)

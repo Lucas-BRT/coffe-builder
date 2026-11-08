@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List
 
-from src.objects import COLORS, Color, Entity, Group, Transform
+from src.objects import COLORS, Color, Entity, Group, Transform, texturize
 from src.objects.components import Block, Cylinder
 
 @dataclass
@@ -62,3 +62,6 @@ class CafeChair(Group):
             Block(width=rail_w, height=0.03, depth=0.02,transform=Transform.at(0, self.seat_height + self.backrest_height * 0.35, back_z),color=self.frame_color),
             Block(width=0.04, height=self.backrest_height * 0.7, depth=0.02,transform=Transform.at(0, self.seat_height + self.backrest_height * 0.35 + 0.1, back_z),color=self.frame_color),
         ]
+
+        texturize(self.parts, "madeira_clara.png", 0.3, self.frame_color)
+        texturize(self.parts, "tecido.png", 0.2, self.seat_color)
