@@ -1,11 +1,27 @@
 from enum import Enum
+import subprocess
+import sys
 from pathlib import Path
 from typing import Dict
 
 from OpenGL.GL import *
 from PIL import Image, ImageOps
 
-TEXTURES_DIR = Path(__file__).resolve().parent.parent / "assets" / "textures"
+ROOT_DIR = Path(__file__).resolve().parent.parent
+TEXTURES_DIR = ROOT_DIR / "assets" / "textures"
+
+# texturas feitas por scripts/gerar_texturas.py (as demais são arquivos do projeto)
+GENERATED_TEXTURES = ("reboco.png", "tecido.png", "madeira_clara.png", "marmore.png")
+
+
+def ensure_textures() -> None:
+    """Roda o gerador se faltar alguma das texturas procedurais"""
+    if all((TEXTURES_DIR / name).exists() for name in GENERATED_TEXTURES):
+        return
+    print("texturas ausentes, gerando com scripts/gerar_texturas.py")
+    subprocess.run(
+        [sys.executable, str(ROOT_DIR / "scripts" / "gerar_texturas.py")], check=True
+    )
 
 
 class Texture:
