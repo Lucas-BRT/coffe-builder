@@ -11,4 +11,8 @@ class Scene:
 
     def render(self, renderer) -> None:
         for obj in self.objects:
+            if not getattr(obj, "emissive", False) and getattr(
+                obj, "self_shadow_enabled", True
+            ):
+                renderer.render_self_shadow(obj)
             obj.render(renderer)

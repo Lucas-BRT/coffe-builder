@@ -187,12 +187,20 @@ class Entity:
     def render(self, renderer, parent: Optional[glm.mat4x4] = None) -> None:
         raise NotImplementedError
 
+    def render_shadow(
+        self, renderer, parent: Optional[glm.mat4x4] = None
+    ) -> None:
+        raise NotImplementedError
+
 
 @dataclass
 class Object(Entity):
     mesh: Mesh
     transform: Transform = field(default_factory=Transform)
     color: Color = field(default_factory=lambda: COLORS["WHITE"])
+    grid_enabled: bool = False
+    emissive: bool = False
+    self_shadow_enabled: bool = True
     original_color: Color = field(init=False)
 
     def __post_init__(self) -> None:
@@ -206,8 +214,27 @@ class Object(Entity):
             renderer.model_uniform_loc, 1, GL_FALSE, glm.value_ptr(model)
         )
         glUniform4f(renderer.color_uniform_loc, *self.color.to_gpu())
+        glUniform1i(
+            renderer.grid_uniform_loc,
+            self.grid_enabled and renderer.grid_visible,
+        )
+        glUniform1i(renderer.emissive_uniform_loc, self.emissive)
+        glUniform1i(
+            renderer.self_shadow_uniform_loc,
+            self.self_shadow_enabled and not self.emissive,
+        )
         glBindVertexArray(self.mesh.vao)
         # toda malha é uma lista de triângulos soltos (3 vértices cada)
+        glDrawArrays(GL_TRIANGLES, 0, self.mesh.vertex_count)
+
+    def render_shadow(
+        self, renderer, parent: Optional[glm.mat4x4] = None
+    ) -> None:
+        model = self.world_matrix(parent)
+        glUniformMatrix4fv(
+            renderer.shadow_model_uniform_loc, 1, GL_FALSE, glm.value_ptr(model)
+        )
+        glBindVertexArray(self.mesh.vao)
         glDrawArrays(GL_TRIANGLES, 0, self.mesh.vertex_count)
 
 
@@ -228,3 +255,10 @@ class Group(Entity):
         model = self.world_matrix(parent)
         for part in self.parts:
             part.render(renderer, model)
+
+    def render_shadow(
+        self, renderer, parent: Optional[glm.mat4x4] = None
+    ) -> None:
+        model = self.world_matrix(parent)
+        for part in self.parts:
+            part.render_shadow(renderer, model)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import singledispatchmethod
+from math import floor
 from typing import Optional, Union
 
 import glfw
@@ -23,7 +24,9 @@ from src.events import (
     SpawObject,
     UpdateZoomLevel,
 )
-from src.objects import Entity
+from src.objects import COLORS, Entity, Transform
+from src.objects.components import Block
+from src.objects.cursor import CURSOR_GRID_STEP, Cursor
 from src.scenes import Scene
 from src.scenes.coffee_shop import CoffeeShopScene
 from src.window import Window
@@ -39,6 +42,13 @@ class State:
         self.isometric_camera = IsometricCamera()
         self.perspective_camera = PerspectiveCamera()
         self.camera: AnyCamera = self.isometric_camera  # começa na isométrica
+        self.cursor = Cursor()
+        self.world_grid = Block(
+            transform=Transform.at(0, -0.0575, 0),
+            color=COLORS["WHITE"],
+            grid_enabled=True,
+            self_shadow_enabled=False,
+        )
         self.selected = 0
 
     @property
@@ -58,8 +68,40 @@ class State:
             return None
         return objects[self.selected % len(objects)]
 
-    def update(self) -> None:
-        pass
+    def update_cursor(self, x: float, y: float) -> None:
+        window = self.window
+        world = self.isometric_camera.mouse_to_world(
+            x,
+            y,
+            window.width,
+            window.height,
+            window.framebuffer_width / max(window.framebuffer_height, 1),
+        )
+        x = (floor(world.x / CURSOR_GRID_STEP) + 0.5) * CURSOR_GRID_STEP
+        z = (floor(world.z / CURSOR_GRID_STEP) + 0.5) * CURSOR_GRID_STEP
+        self.cursor.move_to(x, 0, z)
+
+    def update_world_grid(self, aspect: float) -> None:
+        window = self.window
+        center = self.isometric_camera.mouse_to_world(
+            window.width / 2,
+            window.height / 2,
+            window.width,
+            window.height,
+            aspect,
+        )
+        size = max(
+            self.isometric_camera.zoom_level,
+            self.isometric_camera.zoom_level * aspect,
+        ) * 8
+        self.world_grid.move_to(center.x, -0.0575, center.z)
+        self.world_grid.scale_to(size, 0.005, size)
+
+    def update(self, dt: float = 0.0) -> None:
+        self.isometric_camera.update_rotation(dt)
+        if self.camera_mode is CameraType.Isometric:
+            x, y = glfw.get_cursor_pos(self.window.inner)
+            self.update_cursor(x, y)
 
     @singledispatchmethod
     def handle_event(
@@ -121,9 +163,8 @@ class State:
 
     @handle_event.register
     def _(self, event: RotateIsometricCamera) -> None:
-        camera = self.isometric_camera
-        y_angle = 1 if event.direction is IsometricRotationDirection.Left else -1
-        camera.rotate(camera.rotation_speed, y_angle=y_angle)
+        direction = 1 if event.direction is IsometricRotationDirection.Left else -1
+        self.isometric_camera.rotate_quarter_turn(direction)
 
     @handle_event.register
     def _(self, event: UpdateZoomLevel) -> None:

@@ -17,6 +17,7 @@ FLOOR_THICKNESS = 0.05
 FLOOR_COLOR = Color(0.85, 0.55, 0.28, 1)  # madeira cor de mel
 BACK_WALL_COLOR = Color(0.1, 0.6, 0.58, 1)  # verde-azulado
 SIDE_WALL_COLOR = Color(0.96, 0.72, 0.2, 1)  # mostarda
+LIGHT_COLOR = Color(1.0, 0.86, 0.62, 1)
 
 COUNTER_BODY_COLOR = Color(0.78, 0.2, 0.18, 1)  # vermelho tijolo
 COUNTER_TOP_COLOR = Color(0.97, 0.95, 0.9, 1)  # mármore claro
@@ -60,6 +61,16 @@ class CoffeeShopScene(Scene):
 
         half = ROOM_SIZE / 2
 
+        self.light = Block(
+            width=0.35,
+            height=0.35,
+            depth=0.35,
+            transform=Transform.at(0, 2.0, 0),
+            color=LIGHT_COLOR,
+            emissive=True,
+        )
+        self.objects.append(self.light)
+
         self.objects.append(
             Block(
                 width=ROOM_SIZE,
@@ -67,6 +78,7 @@ class CoffeeShopScene(Scene):
                 depth=ROOM_SIZE,
                 transform=Transform.at(0, -FLOOR_THICKNESS / 2, 0),
                 color=FLOOR_COLOR,
+                grid_enabled=True,
             )
         )
 

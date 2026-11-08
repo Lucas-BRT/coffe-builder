@@ -16,6 +16,7 @@ from src.events import (
     SpawObject,
     UpdateZoomLevel,
 )
+from src.objects.components import Block
 from src.objects.components.shapes2d.square import Square
 from src.renderer import Renderer
 from src.state import State
@@ -53,6 +54,17 @@ class Controls:
                 self.state.handle_event(RemoveLastObject())
             if key == glfw.KEY_ENTER:
                 self.state.handle_event(SpawObject(object=Square()))
+            if (
+                self.state.camera_mode is CameraType.Isometric
+                and mods & glfw.MOD_SHIFT
+                and key in (glfw.KEY_Q, glfw.KEY_E)
+            ):
+                direction = (
+                    IsometricRotationDirection.Left
+                    if key == glfw.KEY_Q
+                    else IsometricRotationDirection.Right
+                )
+                self.state.handle_event(RotateIsometricCamera(direction=direction))
 
         def scroll_callback(window, xoffset, yoffset):
 
@@ -83,19 +95,41 @@ class Controls:
                 self.last_x, self.last_y = xpos, ypos
                 self.state.handle_event(RotateCamera(dx=dx, dy=dy))
             if self.state.camera_mode == CameraType.Isometric:
-                # TODO: implementar os outros comandos da camera isometrica
-                pass
+                self.state.update_cursor(xpos, ypos)
+
+        def mouse_button_callback(window, button: int, action: int, mods: int) -> None:
+            if button != glfw.MOUSE_BUTTON_LEFT:
+                return
+            xpos, ypos = glfw.get_cursor_pos(window)
+            sidebar = self.renderer.sidebar
+            if action == glfw.RELEASE and sidebar.dragging is not None:
+                item, sidebar.dragging = sidebar.dragging, None
+                if (
+                    self.state.camera_mode is CameraType.Isometric
+                    and sidebar.width <= xpos < self.state.window.width
+                    and 0 <= ypos < self.state.window.height
+                ):
+                    self.state.update_cursor(xpos, ypos)
+                    obj = item.create()
+                    position = self.state.cursor.transform.position
+                    y = obj.height / 2 if isinstance(obj, Block) else 0
+                    obj.move_to(position.x, y, position.z)
+                    self.state.handle_event(SpawObject(object=obj))
+            elif action == glfw.PRESS and self.state.camera_mode is CameraType.Isometric:
+                sidebar.dragging = sidebar.item_at(xpos, ypos)
 
         glfw.set_key_callback(self.state.window.inner, key_callback)
         glfw.set_cursor_pos_callback(self.state.window.inner, mouse_callback)
+        glfw.set_mouse_button_callback(self.state.window.inner, mouse_button_callback)
         glfw.set_scroll_callback(self.state.window.inner, scroll_callback)
+        xpos, ypos = glfw.get_cursor_pos(self.state.window.inner)
+        self.state.update_cursor(xpos, ypos)
 
     def handle_dynamic_user_input(self, dt: float) -> None:
         glfw.poll_events()
 
         self.handle_player_move(dt)
         self.handle_window_resize()
-        self.handle_isometric_camera_rotation()
         self.handle_isometric_camera_zoom()
         self.handle_object_manual_move()
 
@@ -113,17 +147,6 @@ class Controls:
             self.state.handle_event(UpdateZoomLevel(amount=-self.zoom_speed))
         if self.pressed(glfw.KEY_MINUS):
             self.state.handle_event(UpdateZoomLevel(amount=self.zoom_speed))
-
-    def handle_isometric_camera_rotation(self):
-        if self.pressed(glfw.KEY_LEFT_SHIFT):
-            if self.pressed(glfw.KEY_Q):
-                self.state.handle_event(
-                    RotateIsometricCamera(direction=IsometricRotationDirection.Left)
-                )
-            if self.pressed(glfw.KEY_E):
-                self.state.handle_event(
-                    RotateIsometricCamera(direction=IsometricRotationDirection.Right)
-                )
 
     def handle_player_move(self, dt: float = 0):
         forward = self.pressed(glfw.KEY_W) - self.pressed(glfw.KEY_S)

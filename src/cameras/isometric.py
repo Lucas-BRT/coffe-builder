@@ -15,7 +15,6 @@ class IsometricRotationDirection(Enum):
 
 class IsometricCamera(Camera):
     type: CameraType = CameraType.Isometric
-    rotation_speed = 0.06
     speed = 1.0  # metade da tela por SEGUNDO (com zoom 1)
 
     def __init__(
@@ -40,6 +39,10 @@ class IsometricCamera(Camera):
         self.lokin_at_z = lokin_at_z
 
         self.aspect_ratio = aspect_ratio
+        self._rotation_queue: list[int] = []
+        self._rotation_direction = 0
+        self._rotation_elapsed = 0.0
+        self._rotation_previous_progress = 0.0
 
         # câmera na diagonal (1,1,1) olhando para a origem
         self.view: glm.mat4x4 = glm.lookAt(
@@ -56,6 +59,32 @@ class IsometricCamera(Camera):
         # near negativo e grande: na ortográfica não tem problema enxergar
         # "atrás" da câmera, e assim cenas grandes não ficam cortadas
         return glm.ortho(-z * aspect, z * aspect, -z, z, -100.0, 100.0)
+
+    def mouse_to_world(
+        self,
+        x: float,
+        y: float,
+        window_width: int,
+        window_height: int,
+        aspect: float,
+        plane_y: float = 0.0,
+    ) -> glm.vec3:
+        """Converte a posição GLFW do cursor no ponto do plano horizontal."""
+        ndc_x = 2.0 * x / window_width - 1.0
+        ndc_y = 1.0 - 2.0 * y / window_height
+        inverse_view_projection = glm.inverse(self.projection_matrix(aspect) * self.view)
+
+        near = inverse_view_projection * glm.vec4(ndc_x, ndc_y, -1.0, 1.0)
+        far = inverse_view_projection * glm.vec4(ndc_x, ndc_y, 1.0, 1.0)
+        near = glm.vec3(near) / near.w
+        far = glm.vec3(far) / far.w
+        direction = far - near
+
+        if abs(direction.y) < 1e-8:
+            raise ValueError("raio do mouse paralelo ao plano")
+
+        distance = (plane_y - near.y) / direction.y
+        return near + distance * direction
 
     def move(self, forward: int, strafe: int, dt: float) -> None:
         """
@@ -91,6 +120,28 @@ class IsometricCamera(Camera):
     ) -> None:
         # mesmo que self.view * glm.rotate(angle, eixo), mas tipado certo nos stubs
         self.view = glm.rotate(self.view, angle, glm.vec3(x_angle, y_angle, z_angle))
+
+    def rotate_quarter_turn(self, direction: int) -> None:
+        self._rotation_queue.append(direction)
+
+    def update_rotation(self, dt: float) -> None:
+        if not self._rotation_direction and self._rotation_queue:
+            self._rotation_direction = self._rotation_queue.pop(0)
+            self._rotation_elapsed = 0.0
+            self._rotation_previous_progress = 0.0
+        if not self._rotation_direction:
+            return
+
+        duration = 0.25
+        self._rotation_elapsed = min(self._rotation_elapsed + dt, duration)
+        progress = self._rotation_elapsed / duration
+        eased = progress * progress * (3.0 - 2.0 * progress)
+        angle = glm.radians(90.0) * (eased - self._rotation_previous_progress)
+        self.rotate(angle, y_angle=self._rotation_direction)
+        self._rotation_previous_progress = eased
+
+        if progress == 1.0:
+            self._rotation_direction = 0
 
     def set_zoom(self, zoom: float = 1) -> None:
         self.zoom_level = max(0.05, zoom)  # zoom <= 0 inverteria a imagem

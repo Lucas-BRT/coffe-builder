@@ -24,7 +24,7 @@ class Game:
             now = glfw.get_time()
             dt, last = now - last, now
             self.controls.handle_dynamic_user_input(dt)
-            self.state.update()
+            self.state.update(dt)
             self.renderer.render()
             glfw.swap_buffers(self.state.window.inner)
 
