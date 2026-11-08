@@ -8,6 +8,10 @@ from src.objects.components import Block
 from src.objects.counter import Counter
 from src.objects.table import Table
 from src.scenes import Scene
+from src.objects.coffee_machine import CoffeeMachine
+from src.objects.cup import Cup
+from src.objects.floor_lamp import FloorLamp
+from src.objects.menu import Menu
 
 ROOM_SIZE = 6.0
 WALL_HEIGHT = 2.4
@@ -91,15 +95,29 @@ class CoffeeShopScene(Scene):
             ),
         ]
 
-        self.objects.append(
-            Counter(
-                length=3.0,
-                transform=Transform.at(-1.2, 0, -1.9),
-                body_color=COUNTER_BODY_COLOR,
-                top_color=COUNTER_TOP_COLOR,
-                plinth_color=COUNTER_PLINTH_COLOR,
-            )
+        for structure in self.objects:
+            structure.selectable = False
+
+        counter = Counter(
+            length=3.0,
+            transform=Transform.at(-1.2, 0, -1.9),
+            body_color=COUNTER_BODY_COLOR,
+            top_color=COUNTER_TOP_COLOR,
+            plinth_color=COUNTER_PLINTH_COLOR,
         )
+
+        counter.parts += [
+            CoffeeMachine(transform=Transform.at(0.7, counter.height, -0.1)),
+            Cup(transform=Transform.at(0.0, counter.height, 0.1)),
+            Cup(transform=Transform.at(-0.35, counter.height, 0.05, ry=40)),
+        ]
+        self.objects.append(counter)
+
+        self.objects.append(FloorLamp(transform=Transform.at(-2.6, 0, 2.4)))
+
+        board = Menu(transform=Transform.at(-1.2, 0, -half + 0.04 / 2))
+        board.selectable = False
+        self.objects.append(board)
 
         # 4 mesas em grade 2x2 na parte da frente da sala
         positions = [(x, z) for x in (-1.5, 1.5) for z in (-0.2, 1.9)]
