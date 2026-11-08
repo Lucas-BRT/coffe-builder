@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List
 
 from src.objects import Color, Entity, Group, Transform
-from src.objects.chair import Chair
+from src.objects.cafe_chair import CafeChair
 from src.objects.components import Block
 from src.objects.counter import Counter
 from src.objects.round_table import RoundTable
@@ -50,7 +50,7 @@ def dining_set(x: float, z: float, seat_color: Color) -> Group:
     distance = table.width / 2 + 0.21 - 0.06
 
     def chair(transform: Transform) -> Chair:
-        return Chair(
+        return CafeChair(
             transform=transform, frame_color=WOOD_COLOR, seat_color=seat_color
         )
 
