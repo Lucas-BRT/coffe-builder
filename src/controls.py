@@ -67,6 +67,10 @@ class Controls:
                 self.state.handle_event(RotateIsometricCamera(direction=direction))
 
         def scroll_callback(window, xoffset, yoffset):
+            sidebar = self.renderer.sidebar
+            if glfw.get_cursor_pos(window)[0] < sidebar.width:
+                sidebar.scroll_by(-yoffset * 40, self.state.window.height)
+                return
 
             # como o teclado está lendo no modo de leitura de "escuta"
             # e o mouse está lendo no modo de callback, mouses sem rodas livres

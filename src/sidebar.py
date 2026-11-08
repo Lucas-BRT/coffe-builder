@@ -9,9 +9,18 @@ import numpy as np
 from OpenGL.GL import *
 
 from src.objects import COLORS, Color, Entity
+from src.objects.armchair import Armchair
+from src.objects.cafe_chair import CafeChair
 from src.objects.chair import Chair
+from src.objects.coffee_machine import CoffeeMachine
+from src.objects.coffee_table import CoffeeTable
 from src.objects.components import Block
 from src.objects.counter import Counter
+from src.objects.cup import Cup
+from src.objects.floor_lamp import FloorLamp
+from src.objects.L_counter import LCounter
+from src.objects.menu import Menu
+from src.objects.round_table import RoundTable
 from src.objects.table import Table
 
 SHADERS_DIR = Path(__file__).resolve().parent.parent / "shaders"
@@ -22,6 +31,7 @@ FONT = {
     "C": ("011", "100", "100", "100", "011"),
     "D": ("110", "101", "101", "101", "110"),
     "E": ("111", "100", "110", "100", "111"),
+    "F": ("111", "100", "110", "100", "100"),
     "G": ("011", "100", "101", "101", "011"),
     "H": ("101", "101", "111", "101", "101"),
     "I": ("111", "010", "010", "010", "111"),
@@ -32,11 +42,16 @@ FONT = {
     "N": ("101", "111", "111", "111", "101"),
     "O": ("010", "101", "101", "101", "010"),
     "P": ("110", "101", "110", "100", "100"),
+    "Q": ("010", "101", "101", "110", "011"),
     "R": ("110", "101", "110", "101", "101"),
     "S": ("011", "100", "010", "001", "110"),
     "T": ("111", "010", "010", "010", "010"),
     "U": ("101", "101", "101", "101", "111"),
+    "V": ("101", "101", "101", "101", "010"),
     "W": ("101", "101", "111", "111", "101"),
+    "X": ("101", "101", "010", "101", "101"),
+    "Y": ("101", "101", "010", "010", "010"),
+    "Z": ("111", "001", "010", "100", "111"),
 }
 
 
@@ -59,7 +74,17 @@ class Sidebar:
             SidebarItem("TABLE", Table, COLORS["BROWN"]),
             SidebarItem("COUNTER", Counter, COLORS["RED"]),
             SidebarItem("BLOCK", Block.cube, COLORS["BLUE"]),
+            SidebarItem("CAFE CHAIR", CafeChair, COLORS["LIGHT_BROWN"]),
+            SidebarItem("ARMCHAIR", Armchair, COLORS["ORANGE"]),
+            SidebarItem("ROUND TBL", RoundTable, COLORS["BROWN"]),
+            SidebarItem("COFFEE TBL", CoffeeTable, COLORS["BROWN"]),
+            SidebarItem("L COUNTER", LCounter, COLORS["RED"]),
+            SidebarItem("ESPRESSO", CoffeeMachine, COLORS["DARK_GRAY"]),
+            SidebarItem("CUP", Cup, COLORS["LIGHT_GRAY"]),
+            SidebarItem("LAMP", FloorLamp, COLORS["YELLOW"]),
+            SidebarItem("MENU", Menu, COLORS["GREEN"]),
         ]
+        self.scroll = 0.0
         self.dragging: Optional[SidebarItem] = None
         self.shader = self._create_program("sidebar.vert", "sidebar.frag")
         self.viewport_uniform = glGetUniformLocation(self.shader, "viewport_size")
@@ -74,11 +99,19 @@ class Sidebar:
         glEnableVertexAttribArray(1)
         glBindVertexArray(0)
 
+    footer = 44
+
+    def scroll_by(self, amount: float, height: int) -> None:
+        pitch = self.row_height + self.row_gap
+        visible = height - self.row_top - self.footer
+        max_scroll = max(0, len(self.items) * pitch - visible)
+        self.scroll = min(max(self.scroll + amount, 0), max_scroll)
+
     def item_at(self, x: float, y: float) -> Optional[SidebarItem]:
-        if x < 0 or x >= self.width or y < 0:
+        if x < 0 or x >= self.width or y < self.row_top:
             return None
         for index, item in enumerate(self.items):
-            top = self.row_top + index * (self.row_height + self.row_gap)
+            top = self.row_top + index * (self.row_height + self.row_gap) - self.scroll
             if top <= y < top + self.row_height:
                 return item
         return None
@@ -117,9 +150,10 @@ class Sidebar:
 
         rect(0, 0, self.width, height, (0.09, 0.10, 0.12))
         rect(self.width - 1, 0, 1, height, (0.24, 0.26, 0.29))
-        text("OBJECTS", 20, 20, 3, (0.94, 0.95, 0.97))
         for index, item in enumerate(self.items):
-            top = self.row_top + index * (self.row_height + self.row_gap)
+            top = self.row_top + index * (self.row_height + self.row_gap) - self.scroll
+            if top + self.row_height < self.row_top or top > height - self.footer:
+                continue
             selected = item is self.dragging
             rect(
                 10,
@@ -132,6 +166,11 @@ class Sidebar:
             )
             rect(20, top + 15, 24, 24, (item.color.r, item.color.g, item.color.b))
             text(item.name, 58, top + 20, 3, (0.91, 0.92, 0.94))
+        # cobre as linhas que passam por baixo do título e do rodapé
+        panel = (0.09, 0.10, 0.12)
+        rect(0, 0, self.width - 1, self.row_top, panel)
+        rect(0, height - self.footer, self.width - 1, self.footer, panel)
+        text("OBJECTS", 20, 20, 3, (0.94, 0.95, 0.97))
         text("DRAG TO WORLD", 18, height - 32, 2, (0.57, 0.61, 0.65))
 
         data = np.asarray(vertices, dtype=np.float32)
